@@ -1,0 +1,12 @@
+digraph GFSM {
+ rankdir = LR;
+ size = "8.5,11";
+ label = "Gfsm::Automaton=SCALAR(0x84f519c)";
+ center = 1;
+ nodesep = "0.250000";
+ ranksep = "0.400000";
+ rotate = 90;
+0 [label="0", shape=doublecircle, style=bold, fontsize=14, fontname="Times-Roman"]
+   0 -> 1 [label="1:2/0", fontsize=14, fontname="Times-Roman"];
+1 [label="1", shape=doublecircle, style=solid, fontsize=14, fontname="Times-Roman"]
+}
