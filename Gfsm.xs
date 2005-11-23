@@ -29,3 +29,5 @@ INCLUDE: Alphabet.xs
 INCLUDE: Automaton.xs
 INCLUDE: ArcIter.xs
 INCLUDE: Algebra.xs
+INCLUDE: Lookup.xs
+INCLUDE: Paths.xs

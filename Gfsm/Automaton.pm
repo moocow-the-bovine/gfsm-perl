@@ -99,6 +99,7 @@ sub print_att {
 ##  + %opts:
 ##     lower => $alphabet_lower,
 ##     upper => $alphabet_upper,
+##     labels => $alphabet_lower_and_upper,
 ##     states => $alphabet_states,
 ##     title => $title,
 ##     xspace=>$xspace,
@@ -115,8 +116,8 @@ sub draw_vcg {
     return 0;
   }
   my $rc = $fsm->_draw_vcg($fh,
-			   ($opts{lower} ? $opts{lower} : $Gfsm::Alphabet::NULL),
-			   ($opts{upper} ? $opts{upper} : $Gfsm::Alphabet::NULL),
+			   ($opts{lower} ? $opts{lower} : ($opts{labels} ? $opts{labels} : $Gfsm::Alphabet::NULL)),
+			   ($opts{upper} ? $opts{upper} : ($opts{labels} ? $opts{labels} : $Gfsm::Alphabet::NULL)),
 			   ($opts{states} ? $opts{states} : $Gfsm::Alphabet::NULL),
 			   ($opts{title} ? $opts{title} : "$fsm"),
 			   (defined($opts{xspace}) ? $opts{xspace} : 40),
@@ -135,6 +136,7 @@ sub draw_vcg {
 ##  + %opts:
 ##     lower => $alphabet_lower,
 ##     upper => $alphabet_upper,
+##     labels => $alphabet_lower_and_upper,
 ##     states => $alphabet_states,
 ##     title => $title,
 ##     width=>$inches,
@@ -153,8 +155,8 @@ sub draw_dot {
     return 0;
   }
   my $rc = $fsm->_draw_dot($fh,
-			   ($opts{lower} ? $opts{lower} : $Gfsm::Alphabet::NULL),
-			   ($opts{upper} ? $opts{upper} : $Gfsm::Alphabet::NULL),
+			   ($opts{lower} ? $opts{lower} : ($opts{labels} ? $opts{labels} : $Gfsm::Alphabet::NULL)),
+			   ($opts{upper} ? $opts{upper} : ($opts{labels} ? $opts{labels} : $Gfsm::Alphabet::NULL)),
 			   ($opts{states} ? $opts{states} : $Gfsm::Alphabet::NULL),
 			   ($opts{title} ? $opts{title} : "$fsm"),
 			   ($opts{width} ? $opts{width} : 8.5),
@@ -214,6 +216,17 @@ sub project {my $fsm=shift->clone; $fsm->_project(@_); return $fsm;}
 sub prune {my $fsm=shift->clone; $fsm->_prune(@_); return $fsm;}
 sub reverse {my $fsm=shift->clone; $fsm->_reverse(@_); return $fsm;}
 sub union {my $fsm=shift->clone; $fsm->_union(@_); return $fsm;}
+
+##======================================================================
+## Lookup: Wrappers
+##======================================================================
+
+sub lookup {
+  my ($fst,$input,$result) = @_;
+  $result = $fst->shadow() if (!$result);
+  $fst->_lookup($input,$result);
+  return $result;
+}
 
 1;
 

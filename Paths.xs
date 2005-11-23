@@ -1,0 +1,61 @@
+#/*-*- Mode: C -*- */
+
+MODULE = Gfsm		PACKAGE = Gfsm::Automaton           PREFIX = gfsm_automaton_
+
+##=====================================================================
+## Constructors etc.
+##=====================================================================
+
+##-- disable perl prototypes
+PROTOTYPES: DISABLE
+
+##--------------------------------------------------------------
+## automaton paths (hash-refs)
+
+##-- ALLOCATION PROBLEMS -- NEW MEMORY ALLOCATOR ?
+
+AV *
+paths(gfsmAutomaton *fsm)
+PREINIT:
+ gfsmSet   *paths_s=NULL;
+ GPtrArray *paths_a=NULL;
+ int i,j;
+ AV *labs=NULL;
+CODE:
+ paths_s=gfsm_automaton_paths(fsm,NULL);
+ paths_a=g_ptr_array_sized_new(gfsm_set_size(paths_s));
+ gfsm_set_to_ptr_array(paths_s, paths_a);
+ RETVAL = newAV();
+ //
+ for (i=0; i<paths_a->len; i++) {
+   gfsmPath *path = (gfsmPath*)g_ptr_array_index(paths_a,i);
+   HV       *hv   = newHV();
+   SV       *hvr  = newRV_noinc((SV*)hv);
+   //
+   //-- lower
+   labs = newAV();
+   for (j=0; j < path->lo->len; j++) {
+     av_push(labs, newSViv((IV)g_ptr_array_index(path->lo,j)));
+   }
+   hv_store(hv, "lo", 2, newRV_noinc((SV*)labs), 0);
+   //
+   //-- upper
+   labs = newAV();
+   for (j=0; j < path->lo->len; j++) {
+     av_push(labs, newSViv((IV)g_ptr_array_index(path->hi,j)));
+   }
+   hv_store(hv, "hi", 2, newRV_noinc((SV*)labs), 0);
+
+   //-- weight
+   hv_store(hv, "w", 1, newSVnv(path->w), 0);
+   //
+   //-- path
+   av_push(RETVAL, newRV_noinc((SV*)hv));
+ }
+ */
+ //
+ gfsm_set_free(paths_s);
+ g_ptr_array_free(paths_a,TRUE);
+ //
+OUTPUT:
+ RETVAL
