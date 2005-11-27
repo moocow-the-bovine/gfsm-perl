@@ -31,6 +31,7 @@ void
 DESTROY(gfsmAlphabet* abet)
 CODE:
  if (abet) gfsm_alphabet_free(abet);
+ g_blow_chunks();
 
 
 ##=====================================================================
@@ -135,6 +136,7 @@ CODE:
  gfsm_alphabet_labels_to_array(abet,tmp);
 
  RETVAL = newAV();
+ sv_2mortal((SV*)RETVAL);
  for (i=0; i < tmp->len; i++) {
    av_push(RETVAL, newSViv((IV)(g_ptr_array_index(tmp,i))));
  }
@@ -176,23 +178,7 @@ OUTPUT:
  RETVAL
 
 ##--------------------------------------------------------------
-## String <-> label vector utilities
-AV *
-string_to_labels_hmm(gfsmAlphabet *abet, const char *str, gboolean warn_on_undefined=TRUE)
-PREINIT:
- gfsmLabelVector *vec;
- int i;
-CODE:
- vec = gfsm_alphabet_string_to_labels(abet,str,NULL,warn_on_undefined);
- RETVAL = newAV();
- if (vec) {
-   for (i=0; i < vec->len; i++) {
-     av_push(RETVAL, newSViv((IV)(g_ptr_array_index(vec,i))));
-   }
-   g_ptr_array_free(vec,TRUE);
- }
-OUTPUT:
- RETVAL
+## String Utilities
 
 gfsmLabelVector *
 string_to_labels(gfsmAlphabet *abet, const char *str, gboolean warn_on_undefined=TRUE)
@@ -212,3 +198,4 @@ OUTPUT:
  RETVAL
 CLEANUP:
  g_free(RETVAL);
+ g_ptr_array_free(labels,TRUE);

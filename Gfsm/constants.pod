@@ -1,0 +1,88 @@
+
+# Below is stub documentation for your module. You'd better edit it!
+
+=head1 NAME
+
+Gfsm::constants - constants defined in the Gfsm module.
+
+=head1 SYNOPSIS
+
+ use Gfsm;
+
+ ##------------------------------------------------------------
+ ## Library Information
+ $version_string = Gfsm::library_version();
+
+ ##------------------------------------------------------------
+ ## Arc Labels
+ use Gfsm qw(:labels);
+ $lab = $Gfsm::epsilon = Gfsm::epsilon();
+ $lab = $Gfsm::noLabel = Gfsm::noLabel();
+
+ ##------------------------------------------------------------
+ ## State IDs
+ use Gfsm qw(:states);
+ $id  = $Gfsm::noState = Gfsm::noState();
+
+ ##--------------------------------------------------------------
+ ## Semiring types
+ use Gfsm qw(:srtypes);
+ $typ = $Gfsm::SRTUnknown  = Gfsm::SRTUnknown();
+ $typ = $Gfsm::SRTBoolean  = Gfsm::SRTBoolean();
+ $typ = $Gfsm::SRTLog      = Gfsm::SRTLog();
+ $typ = $Gfsm::SRTReal     = Gfsm::SRTReal();
+ $typ = $Gfsm::SRTTrivial  = Gfsm::SRTTrivial();
+ $typ = $Gfsm::SRTTropical = Gfsm::SRTTropical();
+ $typ = $Gfsm::SRTPLog     = Gfsm::SRTPLog();
+ $typ = $Gfsm::SRTPUser    = Gfsm::SRTPUser();
+
+ ##--------------------------------------------------------------
+ ## Automaton arc-sort modes
+ use Gfsm qw(:sortmodes);
+ $mod = $Gfsm::ASMNone   = Gfsm::ASMNone();
+ $mod = $Gfsm::ASMLower  = Gfsm::ASMLower();
+ $mod = $Gfsm::ASMUpper  = Gfsm::ASMUpper();
+ $mod = $Gfsm::ASMWeight = Gfsm::ASMWeight();
+
+ ##--------------------------------------------------------------
+ ## Label sides
+ use Gfsm qw(:labelsides);
+ $sid = $Gfsm::LSBoth  = Gfsm::LSBoth();
+ $sid = $Gfsm::LSLower = Gfsm::LSLower();
+ $sid = $Gfsm::LSUpper = Gfsm::LSUpper();
+
+ ##--------------------------------------------------------------
+ ## NULL objects
+ $abet = $Gfsm::Alphabet::NULL;
+ $fsm  = $Gfsm::Automaton::NULL;
+
+ ##--------------------------------------------------------------
+ ## all of the above
+ use Gfsm qw(:constants);
+
+
+=head1 DESCRIPTION
+
+A number of constants may be exported by the Gfsm module.  They are
+listed above.
+
+=head1 SEE ALSO
+
+Gfsm(3perl),
+gfsmutils(1).
+
+
+=head1 AUTHOR
+
+Bryan Jurish E<lt>moocow@ling.uni-potsdam.deE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Bryan Jurish
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.4 or,
+at your option, any later version of Perl 5 you may have available.
+
+
+=cut

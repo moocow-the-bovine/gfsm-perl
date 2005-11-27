@@ -37,7 +37,7 @@ T_INT
 
 T_UINT
   {
-      $var = (unsigned int)SvIV($arg);
+      $var = SvUV($arg);
   }
 
 T_FLOAT
@@ -47,6 +47,7 @@ T_FLOAT
 
 T_LABEL_VECTOR
   {
+      //-------------------------- perl->C
       int _i;
       AV *av=NULL;
 
@@ -61,11 +62,12 @@ T_LABEL_VECTOR
       for (_i=0; _i <= av_len(av); _i++) {
 	  SV **sv = av_fetch(av,_i,0);
 	  if (sv && *sv) {
-	      g_ptr_array_add($var, (gpointer)(SvIV(*sv)));
+	      g_ptr_array_add($var, (gpointer)(SvUV(*sv)));
 	  } else {
 	      g_ptr_array_add($var, ((gpointer)((int)gfsmNoLabel)));
 	  }
       }
+      //-------------------------- END perl->C
   }
 
 ######################################################################
@@ -77,21 +79,22 @@ OUTPUT
 
 T_INT
   {
-      $arg = newSViv($var);
+      sv_setiv($arg,$var);
   }
 
 T_UINT
   {
-      $arg = newSViv((unsigned int)$var);
+      sv_setuv($arg,$var);
   }
 
 T_FLOAT
   {
-      $arg = newSVnv($var);
+      sv_setnv($arg,$var);
   }
 
 T_LABEL_VECTOR
   {
+      //-------------------------- C->perl
       int _i;
       AV *av = newAV();
       if ($var) {
@@ -99,5 +102,8 @@ T_LABEL_VECTOR
 	      av_push(av, newSViv((IV)g_ptr_array_index($var,_i)));
 	  }
       }
+      sv_2mortal((SV*)av);
       $arg = newRV((SV*)av);
+      sv_2mortal($arg);
+      //-------------------------- END C->perl
   }

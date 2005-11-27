@@ -25,6 +25,7 @@ WriteMakefile
    DEFINE       => '-DHAVE_CONFIG_H',     ##-- additional defines
    INC          => $GFSM_IFLAGS,      ##-- additional includes
    CCFLAGS      => '',      ##-- additional flags
+   OBJECT       => 'Gfsm.o GfsmPerl.o',
 
    ##-- stuff that probably doesn't need to be changed
    #XSOPT        => '-C++',
@@ -57,7 +58,9 @@ sub MY::depend {
 		  )
 		 ."\n\n"
 		 ##-- c->o dependencies
-		 ."Gfsm.o: Gfsm.c\n"
+		 ."Gfsm.o: Gfsm.c GfsmPerl.h\n"
+		 ."\n"
+		 ."GfsmPerl.o: GfsmPerl.h GfsmPerl.c\n"
 		 ."\n"
 		 ## -- more here
 		 ."\n"

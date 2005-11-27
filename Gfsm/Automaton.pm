@@ -93,7 +93,7 @@ sub print_att {
 }
 
 ##--------------------------------------------------------------
-## I/O: Wrappers: Dra
+## I/O: Wrappers: Draw
 
 ## $bool = $fsm->draw_vcg($filename_or_fh, %opts);
 ##  + %opts:
@@ -209,12 +209,41 @@ sub viewps {
 sub closure   { my $fsm=shift->clone; $fsm->_closure(@_); return $fsm;}
 sub n_closure { my $fsm=shift->clone; $fsm->_n_closure(@_); return $fsm;}
 sub complement { my $fsm=shift->clone; $fsm->_complement(@_); return $fsm;}
+sub complete { my $fsm=shift->clone; $fsm->_complete(@_); return $fsm;}
+sub compose_full {
+  my ($fsm1,$fsm2,$fsmout) = @_;
+  $fsmout = $fsm1->shadow() if (!$fsmout);
+  $fsm1->_compose_full($fsm2,$fsmout);
+  return $fsmout;
+}
+sub compose {my $fsm=shift->clone; $fsm->_compose(@_); return $fsm;}
 sub concat { my $fsm=shift->clone; $fsm->_concat(@_); return $fsm;}
-sub determinize { my $fsm=shift->clone; $fsm->_determinize(@_); return $fsm;}
+sub determinize {
+  my $nfa=shift;
+  my $dfa = $nfa->shadow;
+  $nfa->_determinize_2($dfa);
+  return $dfa;
+}
+sub difference_full {
+  my ($fsm1,$fsm2,$fsmout) = @_;
+  $fsmout = $fsm1->shadow() if (!$fsmout);
+  $fsm1->_difference_full($fsm2,$fsmout);
+  return $fsmout;
+}
+sub difference {my $fsm=shift->clone; $fsm->_difference(@_); return $fsm;}
+sub intersect_full {
+  my ($fsm1,$fsm2,$fsmout) = @_;
+  $fsmout = $fsm1->shadow() if (!$fsmout);
+  $fsm1->_intersect_full($fsm2,$fsmout);
+  return $fsmout;
+}
+sub intersect {my $fsm=shift->clone; $fsm->_intersect(@_); return $fsm;}
 sub invert {my $fsm=shift->clone; $fsm->_invert(@_); return $fsm;}
+sub product {my $fsm=shift->clone; $fsm->_product(@_); return $fsm;}
 sub project {my $fsm=shift->clone; $fsm->_project(@_); return $fsm;}
 sub prune {my $fsm=shift->clone; $fsm->_prune(@_); return $fsm;}
 sub reverse {my $fsm=shift->clone; $fsm->_reverse(@_); return $fsm;}
+sub rmepsilon {my $fsm=shift->clone; $fsm->_rmepsilon(@_); return $fsm;}
 sub union {my $fsm=shift->clone; $fsm->_union(@_); return $fsm;}
 
 ##======================================================================
@@ -234,21 +263,161 @@ __END__
 
 # Below is stub documentation for your module. You'd better edit it!
 
+=pod
+
 =head1 NAME
 
 Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
 
 =head1 SYNOPSIS
 
-  use Gfsm;
+ use Gfsm;
 
-  $fsm = Gfsm::Automaton->new();
+ ##------------------------------------------------------------
+ ## Constructors, etc.
 
-  ##... stuff happens
+ $fsm = Gfsm::Automaton->new();
+ $fsm = Gfsm::Automaton->new($is_transducer,$srtype,$n_preallocated_states);
+
+ $fsm2 = $fsm->clone();     # copy constructor
+ $fsm2 = $fsm->shadow();    # copy non-structural elements
+ $fsm2->assign($fsm1);      # assigns $fsm1 to $fsm2
+
+ $fsm->clear();             # clear automaton structure
+
+ ##------------------------------------------------------------
+ ## Accessors/Manipulators: Properties
+
+ $bool = $fsm->is_transducer();           # get 'is_transducer' flag
+ $bool = $fsm->is_transducer($bool);      # ... or set it
+
+ $bool = $fsm->is_weighted(?$bool);       # get/set 'is_weighted' flag
+ $mode = $fsm->sort_mode(?$mode);         # get/set sort-mode flag (dangerous)
+ $bool = $fsm->is_deterministic(?$bool);  # get/set 'is_deterministic' flag (dangerous)
+ $srtype = $fsm->semiring_type(?$srtype); # get/set semiring type
+
+ $n = $fsm->n_states();                   # get number of states
+ $n = $fsm->n_final_states();             # get number of final states
+ $n = $fsm->n_arcs();                     # get number of arcs
+
+ $id = $fsm->root(?$id);                  # get/set id of initial state
+
+ $bool = $fsm->has_state($id);            # check whether a state exists
+ $bool = $fsm->is_cyclic();               # check for cyclicity
+
+ ##------------------------------------------------------------
+ ## Accessors/Manipulators: States
+ $id = $fsm->add_state();                 # add a new state
+ $id = $fsm->ensure_state($id);           # ensure that a state exists
+
+ $fsm->remove_state($id);                 # remove a state from an FSM
+
+ $bool = $fsm->is_final($id,?$bool);      # get/set final-flag for state $id
+ $fsm->renumber_states();                 # close gaps in stateid numbering
+
+ ##------------------------------------------------------------
+ ## Accessors/Manipulators: Arcs
+
+ $fsm->add_arc($fsm,$id_from,$id_to,$lab_lo,$lab_hi,$weight); # add an arc
+ $fsm->arcsort($fsm,$mode);                                   # sort automaton arcs
+
+ $ai = Gfsm::ArcIter->new();              # create new arc-iterator
+ $ai = Gfsm::ArcIter->new($fsm,$stateid); # create & open
+
+ $ai->open($fsm,$stateid);                # open outgoing arcs from $stateid in $fsm
+ $ai->reset();                            # reset to 1st outgoing arc
+ $ai->close();                            # close an arc iterator
+
+ $bool = $ai->ok();                       # check iterator validity
+ $ai->remove();                           # remove current arc from the automaton
+
+ $stateid = $ai->target(?$stateid);       # get/set current arc target StateId
+ $lab     = $ai->lower(?$lab);            # get/set current arc lower label
+ $lab     = $ai->upper(?$lab);            # get/set current arc upper label
+ $lab     = $ai->weight(?$lab);           # get/set current arc weight
+
+ $ai->next();                             # increment to next outgoing arc
+ $ai->seek_lower($lab);                   # (inclusive) seek next arc with lower label $lab
+ $ai->seek_upper($lab);                   # (inclusive) seek next arc with upper label $lab
+ $ai->seek_both($lo,$hi);                 # (inclusive) seek next arc with labels $lo,$hi
+
+ ##--------------------------------------------------------------
+ ## I/O
+
+ $bool = $fsm->load($filename_or_handle);   # load binary file
+ $bool = $fsm->save($filename_or_handle);   # save binary file
+
+ $bool = $fsm->compile($filename_or_handle, ?$abet_lo, ?$abet_hi, ?$abet_states);
+         # compile AT&T-style text file (must be transducer format)
+
+ $bool = $fsm->print_att($filename_or_handle, ?$abet_lo, ?$abet_hi, ?$abet_states);
+         # save AT&T-style text file (transducer format)
+
+ $bool = $fsm->draw_vcg($filename_or_handle,%options);  # save in VCG format
+ $bool = $fsm->draw_dot($filename_or_handle,%options);  # save in DOT format
+
+ $bool = $fsm->viewps(%options);                        # for debugging
+
+ ##--------------------------------------------------------------
+ ## Algebra (constructive)
+
+ $fsm = $fsm1->closure();     # reflexive + transitive closure
+ $fsm = $fsm1->closure(1);    # transitive closure
+ $fsm = $fsm1->n_closure($n); # n-ary closure
+
+ $fsm = $fsm1->complement();      # lower complement wrt. internal alphabet
+ $fsm = $fsm1->complement($abet); # lower complement wrt. alphabet $abet
+ $sinkid = $fsm->complete($abet); # complete lower wrt. $abet, returns sink-state Id
+
+ $fsm = $fsm1->compose($fsm2);    # transducer composition
+
+ $fsm = $fsm1->concat($fsm2);     # concatenate automata
+
+ $fsm = $fsm1->determinize();     # acceptor determinization
+
+ $fsm = $fsm1->difference($fsm2); # lower difference
+
+ $fsm = $fsm1->intersect($fsm2);  # lower acceptor intersection
+
+ $fsm = $fsm1->invert();          # invert transdcuer sides
+
+ $fsm = $fsm1->product($fsm2);    # compute Cartesian product of acceptors
+
+ $fsm = $fsm1->project($side);    # project 1 side of a transducer
+
+ $fsm = $fsm1->prune();           # remove non co-accessible states
+
+ $fsm = $fsm1->rmepsilon();       # remove epsilon-arcs
+
+ $fsm = $fsm1->union($fsm2);      # compute automaton union
+
+ ##--------------------------------------------------------------
+ ## Algebra (destructive)
+
+ $fsm->_closure();                # destructive closure
+ #... etc.
+
+ ##--------------------------------------------------------------
+ ## Lookup & Path Enumeration
+ $fsm   = $fst->lookup($labs);    # linear composition: $fsm=compose(id($labs),$fst)
+ $paths = $fsm->paths();          # enumerate paths (non-cyclic $fsm only!)
+
 
 =head1 DESCRIPTION
 
 Not yet written.
+
+=cut
+
+########################################################################
+## FOOTER
+########################################################################
+
+=pod
+
+=head1 BUGS AND LIMITATIONS
+
+Probably many.
 
 =head1 SEE ALSO
 

@@ -37,12 +37,40 @@ CODE:
  if (alph) { gfsm_automaton_complement_full(fsm,alph); }
  else      { gfsm_automaton_complement(fsm); }
 
+#/**
+# * Complete the lower side of automaton @fsm with respect to the alphabet @alph
+# * by directing "missing" arcs to a new sink-state.  Destructively
+# * alters @fsm.
+# * \returns Id of the new sink state.
+# */
+gfsmStateId
+gfsm_automaton_complete(gfsmAutomaton  *fsm, gfsmAlphabet *alph)
+CODE:
+ gfsm_automaton_complete(fsm,alph,&RETVAL);
+OUTPUT:
+ RETVAL
+
 
 #//------------------------------
 
-#/** Compute the composition of transducer @fsm1 with @fsm2. \returns altered @fsm1 */
-#/// TODO
-#gfsmAutomaton * gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+#/** Compute the composition of two transducers @fsm1 and @fsm2.
+# *  Pseudo-destructive on @fsm1.
+# *  \returns @fsm1.
+# */
+void
+gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+
+#/** Compute the composition of two transducers @fsm1 and @fsm2 
+# *  into the transducer @composition.
+# *  \returns @composition.
+# */
+void
+gfsm_automaton_compose_full(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, gfsmAutomaton *composition)
+CODE:
+ gfsm_automaton_compose_full(fsm1,fsm2,composition,NULL);
+
+
+#//------------------------------
 
 #/** Append @fsm2 onto the end of @fsm1 @n times.  \returns @fsm1 */
 void
@@ -52,23 +80,56 @@ CODE:
 
 
 #//------------------------------
-#/** Determinise @fsm1 pseudo-destructively.
+#/** Determinise @nfa to @dfa. 
 # *  \note weights on epsilon-arcs are probably not handled correctly.
-# *  \returns altered @fsm1
+# */
+void
+gfsm_automaton_determinize_2(gfsmAutomaton *nfa, gfsmAutomaton *dfa)
+
+#/** Determinise @nfa pseudo-destructively.
+# *  \note weights on epsilon-arcs are probably not handled correctly.
 # */
 void
 gfsm_automaton_determinize(gfsmAutomaton *fsm)
 
 #//------------------------------
-#/** Remove language of @fsm2 from @fsm1. \returns @fsm1 */
-#/// TODO
-#gfsmAutomaton *gfsm_automaton_difference(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+
+#/** Remove language of acceptor @fsm2 from acceptor @fsm1.
+# *  Pseudo-destructively alters @fsm1.
+# *  Really just an alias for intersect_full(fsm1,fsm2,NULL)
+# *  \returns @fsm1
+# */
+void
+gfsm_automaton_difference(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+
+#/** Compute difference of acceptors (@fsm1-@fsm2) into acceptor @diff,
+# *  which may be passed as NULL to implicitly create a new automaton.
+# *  Really just an alias for intersect_full(fsm1,complement(clone(fsm2)),diff).
+# *  \returns (possibly new) difference automaton @diff
+# */
+void
+gfsm_automaton_difference_full(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, gfsmAutomaton *diff)
 
 
 #//------------------------------
-#/** Compute the intersection of two acceptors @fsm1 and @fsm2. */
-#/// TODO
-#gfsmAutomaton *gfsm_automaton_intersection(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+#/** Compute the intersection of two acceptors @fsm1 and @fsm2 (lower-side intersection).
+# *  Pseudo-destructive on @fsm1.
+# *  \returns @fsm1.
+# */
+void
+gfsm_automaton_intersect(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+
+#/** Compute the intersection of two acceptors @fsm1 and @fsm2 
+# *  into the acceptor @intersect, which may be passed as NULL to create a new FSM.
+# *  @spenum stores a mapping from (@fsm1,@fsm2) StatePairs to @fsm StateIds,
+# *  if it is passed as NULL, a temporary hash will be created.
+# *  \returns @fsm3.
+# */
+void
+gfsm_automaton_intersect_full(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, gfsmAutomaton *intersect)
+CODE:
+ gfsm_automaton_intersect_full(fsm1,fsm2,intersect,NULL);
+
 
 #//------------------------------
 #/** Invert upper and lower labels of an FSM */
@@ -76,9 +137,20 @@ void
 gfsm_automaton_invert(gfsmAutomaton *fsm)
 
 #//------------------------------
-#/** Compute Cartesian product of @fsm1 and @fsm2.  \returns @fsm1  */
-#/// TODO
-#gfsmAutomaton *gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2);
+#/** Compute Cartesian product of acceptors @fsm1 and @fsm2.
+# *  Destructively alters @fsm1.
+# */
+void
+gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+
+#//------------------------------
+#/** Compute Cartesian product of acceptors @fsm1 and @fsm2.
+# *  Destructively alters both @fsm1 and @fsm2
+# */
+void
+__product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+CODE:
+ _gfsm_automaton_product(fsm1,fsm2);
 
 
 #//------------------------------
@@ -98,8 +170,8 @@ gfsm_automaton_reverse(gfsmAutomaton *fsm)
 
 #//------------------------------
 #/** Remove epsilon arcs from @fsm.  \returns @fsm */
-#/// TODO
-#gfsmAutomaton *gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
+void
+gfsm_automaton_rmepsilon(gfsmAutomaton *fsm)
 
 #//------------------------------
 #/** Assign the union of @fsm1 and @fsm2 to @fsm1. \returns @fsm1 */

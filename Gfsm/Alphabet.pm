@@ -44,23 +44,69 @@ sub save {
 
 __END__
 
-# Below is stub documentation for your module. You'd better edit it!
+=pod
 
 =head1 NAME
 
-Gfsm::Alphabet - object-oriented interface to libgfsm string alphabets
+Gfsm::Alphabet - object-oriented interface to libgfsm string alphabets.
 
 =head1 SYNOPSIS
 
-  use Gfsm;
+ use Gfsm;
 
-  $abet = Gfsm::Alphabet->new();
+ ##------------------------------------------------------------
+ ## Constructors, etc.
+ $abet = Gfsm::Alphabet->new(); # construct a new alphabet
+ $abet->clear();                # empty the alphabet
 
-  ##... stuff happens
+ ##--------------------------------------------------------------
+ ## Alphabet properties
+ $lab = $abet->lab_min();       # get first allocated LabelId
+ $lab = $abet->lab_max();       # get last allocated LabelId
+ $n   = $abet->size();          # get number of defined labels
+
+ ##--------------------------------------------------------------
+ ## Lookup & Manipulation
+ $lab = $abet->insert($key);       # insert a key string
+ $lab = $abet->insert($key,$lab);  # insert a key string, requesting label $lab
+
+ $lab = $abet->get_label($key);    # get or insert label for $key
+ $lab = $abet->find_label($key);   # get label for $key, else Gfsm::noLabel
+
+ $key = $abet->find_key($lab);     # get key for label, else undef
+
+ $abet->remove_key($key);          # remove a key, if defined
+ $abet->remove_label($lab);        # remove a label, if defined
+
+ $abet->merge($abet2);             # add $abet2 keys to $abet1
+ $labs = $abet->labels();          # get array-ref of all labels in $abet
+
+ ##--------------------------------------------------------------
+ ## I/O
+ $abet->load($filename_or_handle); # load AT&T-style .lab file
+ $abet->save($filename_or_handle); # save AT&T-style .lab file
+
+ ##--------------------------------------------------------------
+ ## String utilities
+ $labs = $abet->string_to_labels($str,$emit_warnings=1);               # lab-ify by character
+ $str  = $abet->labels_to_string($labs,$emit_warnings=1,$att_style=0); # stringify
 
 =head1 DESCRIPTION
 
-Not yet written.
+Gfsm::Alphabet provides an object-oriented interface to string symbol
+alphabets as used by the libgfsm library.
+
+=cut
+
+########################################################################
+## FOOTER
+########################################################################
+
+=pod
+
+=head1 BUGS AND LIMITATIONS
+
+Probably many.
 
 =head1 SEE ALSO
 

@@ -62,6 +62,7 @@ void
 DESTROY(gfsmAutomaton* fsm)
 CODE:
  if (fsm) gfsm_automaton_free(fsm);
+ g_blow_chunks();
 
 
 ##=====================================================================

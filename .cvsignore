@@ -8,4 +8,7 @@ blib
 *.old
 *.gfst
 *.ps
+
+*.bs
+big.*
 Gfsm.c

@@ -24,6 +24,7 @@ AV *		T_AvRV
 
 
 ######################################################################
+# C->perl
 OUTPUT
 
 # The Perl object is blessed into 'CLASS', which should be a
@@ -54,6 +55,7 @@ T_AvRV
 
 
 ######################################################################
+# perl->C
 INPUT
 
 O_OBJECT
