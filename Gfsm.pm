@@ -50,7 +50,7 @@ our $SRTReal     = SRTReal();
 our $SRTTrivial  = SRTTrivial();
 our $SRTTropical = SRTTropical();
 our $SRTPLog     = SRTPLog();
-our $SRTPUser    = SRTUser();
+our $SRTUser     = SRTUser();
 $EXPORT_TAGS{srtypes} = [
 			 qw($SRTUnknown   SRTUnknown),
 			 qw($SRTBoolean   SRTBoolean),
@@ -59,7 +59,7 @@ $EXPORT_TAGS{srtypes} = [
 			 qw($SRTTrivial   SRTTrivial),
 			 qw($SRTTropical  SRTTropical),
 			 qw($SRTPLog      SRTPLog),
-			 qw($SRTPUser     SRTPUser),
+			 qw($SRTUser      SRTUser),
 			];
 
 ##--------------------------------------------------------------
