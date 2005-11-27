@@ -50,7 +50,7 @@ our $SRTReal     = SRTReal();
 our $SRTTrivial  = SRTTrivial();
 our $SRTTropical = SRTTropical();
 our $SRTPLog     = SRTPLog();
-our $SRTPUser    = SRTPUser();
+our $SRTPUser    = SRTUser();
 $EXPORT_TAGS{srtypes} = [
 			 qw($SRTUnknown   SRTUnknown),
 			 qw($SRTBoolean   SRTBoolean),
@@ -69,7 +69,7 @@ our $ASMLower  = ASMLower();
 our $ASMUpper  = ASMUpper();
 our $ASMWeight = ASMWeight();
 
-%EXPORT_TAGS{sortmodes} = [
+$EXPORT_TAGS{sortmodes} = [
 			   qw($ASMNone   ASMNone),
 			   qw($ASMLower  ASMLower),
 			   qw($ASMUpper  ASMUpper),
@@ -82,7 +82,7 @@ our $LSBoth  = LSBoth();
 our $LSLower = LSLower();
 our $LSUpper = LSUpper();
 
-%EXPORT_TAGS{labelsides} = [
+$EXPORT_TAGS{labelsides} = [
 			    qw($LSBoth  LSBoth),
 			    qw($LSLower LSLower),
 			    qw($LSUpper LSUpper),
@@ -92,11 +92,13 @@ our $LSUpper = LSUpper();
 ## Exports: finish
 ##======================================================================
 our @EXPORT_OK = map { @$_ } values(%EXPORT_TAGS);
-%EXPORT_TAGS{constants} = \@EXPORT_OK;
+$EXPORT_TAGS{constants} = \@EXPORT_OK;
 
 
 1;
+
 __END__
+
 # Below is stub documentation for your module. You'd better edit it!
 
 =head1 NAME
