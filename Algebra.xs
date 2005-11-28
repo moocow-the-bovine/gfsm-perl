@@ -84,7 +84,7 @@ CODE:
 # *  \note weights on epsilon-arcs are probably not handled correctly.
 # */
 void
-gfsm_automaton_determinize_2(gfsmAutomaton *nfa, gfsmAutomaton *dfa)
+gfsm_automaton_determinize_full(gfsmAutomaton *nfa, gfsmAutomaton *dfa)
 
 #/** Determinise @nfa pseudo-destructively.
 # *  \note weights on epsilon-arcs are probably not handled correctly.
@@ -159,9 +159,9 @@ void
 gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which)
 
 #//------------------------------
-#/** Prune unreachable states from @fsm.  \returns @fsm */
+#/** Remove unreachable states from @fsm.  \returns @fsm */
 void
-gfsm_automaton_prune(gfsmAutomaton *fsm)
+gfsm_automaton_connect(gfsmAutomaton *fsm)
 
 #//------------------------------
 #/** Reverse an @fsm. \returns @fsm */

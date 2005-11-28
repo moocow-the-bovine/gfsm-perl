@@ -221,7 +221,7 @@ sub concat { my $fsm=shift->clone; $fsm->_concat(@_); return $fsm;}
 sub determinize {
   my $nfa=shift;
   my $dfa = $nfa->shadow;
-  $nfa->_determinize_2($dfa);
+  $nfa->_determinize_full($dfa);
   return $dfa;
 }
 sub difference_full {
@@ -367,11 +367,14 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
 
  $fsm = $fsm1->complement();      # lower complement wrt. internal alphabet
  $fsm = $fsm1->complement($abet); # lower complement wrt. alphabet $abet
+
  $sinkid = $fsm->complete($abet); # complete lower wrt. $abet, returns sink-state Id
 
  $fsm = $fsm1->compose($fsm2);    # transducer composition
 
  $fsm = $fsm1->concat($fsm2);     # concatenate automata
+
+ $fsm = $fsm1->connect();         # remove non co-accessible states
 
  $fsm = $fsm1->determinize();     # acceptor determinization
 
@@ -385,14 +388,12 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
 
  $fsm = $fsm1->project($side);    # project 1 side of a transducer
 
- $fsm = $fsm1->prune();           # remove non co-accessible states
-
  $fsm = $fsm1->rmepsilon();       # remove epsilon-arcs
 
  $fsm = $fsm1->union($fsm2);      # compute automaton union
 
  ##--------------------------------------------------------------
- ## Algebra (destructive)
+ ## Algebra ((pseudo-)destructive)
 
  $fsm->_closure();                # destructive closure
  #... etc.

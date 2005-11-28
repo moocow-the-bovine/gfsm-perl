@@ -3,6 +3,10 @@ use ExtUtils::MakeMaker;
 ##----------------------------------------------------------------------
 ## Configuration
 ##----------------------------------------------------------------------
+if (system("pkg-config --atleast-version=0.0.7 gfsm") != 0) {
+  die("Requird module gfsm >= v0.0.7 not found!\n");
+}
+
 $GFSM_IFLAGS=`pkg-config --cflags-only-I gfsm`;
 $GFSM_LDFLAGS=`pkg-config --libs-only-L gfsm`;
 $GFSM_LIBS=`pkg-config --libs-only-l gfsm`;
