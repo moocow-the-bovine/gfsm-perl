@@ -59,6 +59,7 @@ sub MY::depend {
 		   ." ArcIter.xs"
 		   ." Lookup.xs"
 		   ." Paths.xs"
+		   ." Trie.xs"
 		  )
 		 ."\n\n"
 		 ##-- c->o dependencies

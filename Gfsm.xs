@@ -62,3 +62,4 @@ INCLUDE: ArcIter.xs
 INCLUDE: Algebra.xs
 INCLUDE: Lookup.xs
 INCLUDE: Paths.xs
+INCLUDE: Trie.xs

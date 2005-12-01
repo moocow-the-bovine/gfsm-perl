@@ -3,6 +3,7 @@
 gfsmSemiring*	 O_OBJECT
 gfsmAlphabet*	 O_OBJECT
 gfsmAutomaton*   O_OBJECT
+gfsmTrie*        O_OBJECT
 gfsmArcIter*     O_OBJECT
 
 gfsmLabelVector* T_LABEL_VECTOR
