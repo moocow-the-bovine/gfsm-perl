@@ -6,7 +6,8 @@ gfsmAutomaton*   O_OBJECT
 gfsmTrie*        O_OBJECT
 gfsmArcIter*     O_OBJECT
 
-gfsmLabelVector* T_LABEL_VECTOR
+gfsmLabelVector*   T_LABELID_VECTOR
+gfsmStateIdVector* T_STATEID_VECTOR
 
 gboolean         T_INT
 
@@ -46,9 +47,9 @@ T_FLOAT
       $var = SvNV($arg);
   }
 
-T_LABEL_VECTOR
+T_LABELID_VECTOR
   {
-      //-------------------------- perl->C
+      //-------------------------- BEGIN T_LABELID_VECTOR perl->C
       int _i;
       AV *av=NULL;
 
@@ -68,8 +69,34 @@ T_LABEL_VECTOR
 	      g_ptr_array_add($var, ((gpointer)((int)gfsmNoLabel)));
 	  }
       }
-      //-------------------------- END perl->C
+      //-------------------------- END T_LABELID_VECTOR perl->C
   }
+
+T_STATEID_VECTOR
+  {
+      //-------------------------- BEGIN T_STATEID_VECTOR perl->C
+      int _i;
+      AV *av=NULL;
+
+      if (SvROK($arg) && (SvTYPE(SvRV($arg)) == SVt_PVAV) )
+	  av = (AV*)SvRV( $arg );
+      else {
+	  warn( \"${Package}::$func_name() -- $var is not an AV reference\" );
+	  XSRETURN_UNDEF;
+      }
+
+      $var = g_ptr_array_sized_new(av_len(av));
+      for (_i=0; _i <= av_len(av); _i++) {
+	  SV **sv = av_fetch(av,_i,0);
+	  if (sv && *sv) {
+	      g_ptr_array_add($var, (gpointer)(SvUV(*sv)));
+	  } else {
+	      g_ptr_array_add($var, ((gpointer)(gfsmNoState)));
+	  }
+      }
+      //-------------------------- END T_STATEID_VECTOR perl->C
+  }
+
 
 ######################################################################
 # C->perl
@@ -93,18 +120,34 @@ T_FLOAT
       sv_setnv($arg,$var);
   }
 
-T_LABEL_VECTOR
+T_LABELID_VECTOR
   {
-      //-------------------------- C->perl
+      //-------------------------- BEGIN T_LABELID_VECTOR C->perl
       int _i;
       AV *av = newAV();
       if ($var) {
 	  for (_i=0; _i < $var->len; _i++) {
-	      av_push(av, newSViv((IV)g_ptr_array_index($var,_i)));
+	      av_push(av, newSVuv((UV)g_ptr_array_index($var,_i)));
 	  }
       }
       sv_2mortal((SV*)av);
       $arg = newRV((SV*)av);
       sv_2mortal($arg);
-      //-------------------------- END C->perl
+      //-------------------------- END T_LABELID_VECTOR C->perl
+  }
+
+T_STATEID_VECTOR
+  {
+      //-------------------------- BEGIN T_STATEID_VECTOR C->perl
+      int _i;
+      AV *av = newAV();
+      if ($var) {
+	  for (_i=0; _i < $var->len; _i++) {
+	      av_push(av, newSVuv((UV)g_ptr_array_index($var,_i)));
+	  }
+      }
+      sv_2mortal((SV*)av);
+      $arg = newRV((SV*)av);
+      sv_2mortal($arg);
+      //-------------------------- END T_STATEID_VECTOR C->perl
   }

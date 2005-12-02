@@ -180,6 +180,7 @@ sub draw_dot {
 
 ## undef = $fsm->viewps(%opts)
 ##   %opts: as for draw_dot()
+##      bg => $bool, ##-- view in background
 sub viewps {
   my ($fsm,%opts) = @_;
   my ($fh,$dotfilename,$psfilename);
@@ -195,7 +196,11 @@ sub viewps {
     carp(ref($fsm),"::viewps(): dot: Error: $!");
     return;
   }
-  if (system("$GV $psfilename")!=0) {
+
+  if ($opts{bg}) {
+    system("$GV $psfilename &");
+  }
+  elsif (system("$GV $psfilename".($opts{bg} ? '&' : ''))!=0) {
     carp(ref($fsm),"::viewps(): gv: Error: $!");
     return;
   }
@@ -250,11 +255,24 @@ sub union {my $fsm=shift->clone; $fsm->_union(@_); return $fsm;}
 ## Lookup: Wrappers
 ##======================================================================
 
+## $result = $fst->lookup($input)
+## $result = $fst->lookup($input,$result)
 sub lookup {
   my ($fst,$input,$result) = @_;
   $result = $fst->shadow() if (!$result);
   $fst->_lookup($input,$result);
   return $result;
+}
+
+##-- list context:
+## ($result,$statemap) = $fst->lookup_full($input)
+## ($result,$statemap) = $fst->lookup_full($input,$result)
+##   + in scalar context, returns only $statemap
+sub lookup_full {
+  my ($fst,$input,$result) = @_;
+  $result = $fst->shadow() if (!$result);
+  my $map = $fst->_lookup_full($input,$result);
+  return wantarray ? ($result,$map) : $map;
 }
 
 1;
