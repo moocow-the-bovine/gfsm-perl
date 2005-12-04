@@ -60,6 +60,7 @@ INCLUDE: Alphabet.xs
 INCLUDE: Automaton.xs
 INCLUDE: ArcIter.xs
 INCLUDE: Algebra.xs
+INCLUDE: Arith.xs
 INCLUDE: Lookup.xs
 INCLUDE: Paths.xs
 INCLUDE: Trie.xs

@@ -3,8 +3,8 @@ use ExtUtils::MakeMaker;
 ##----------------------------------------------------------------------
 ## Configuration
 ##----------------------------------------------------------------------
-if (system("pkg-config --atleast-version=0.0.7 gfsm") != 0) {
-  die("Requird module gfsm >= v0.0.7 not found!\n");
+if (system("pkg-config --atleast-version=0.0.8 gfsm") != 0) {
+  die("Requird module gfsm >= v0.0.8 not found!\n");
 }
 
 $GFSM_IFLAGS=`pkg-config --cflags-only-I gfsm`;
@@ -56,6 +56,7 @@ sub MY::depend {
 		   ." Alphabet.xs"
 		   ." Automaton.xs"
 		   ." Algebra.xs"
+		   ." Arith.xs"
 		   ." ArcIter.xs"
 		   ." Lookup.xs"
 		   ." Paths.xs"

@@ -223,6 +223,7 @@ sub compose_full {
 }
 sub compose {my $fsm=shift->clone; $fsm->_compose(@_); return $fsm;}
 sub concat { my $fsm=shift->clone; $fsm->_concat(@_); return $fsm;}
+sub connect {my $fsm=shift->clone; $fsm->_connect(@_); return $fsm;}
 sub determinize {
   my $nfa=shift;
   my $dfa = $nfa->shadow;
@@ -246,8 +247,15 @@ sub intersect {my $fsm=shift->clone; $fsm->_intersect(@_); return $fsm;}
 sub invert {my $fsm=shift->clone; $fsm->_invert(@_); return $fsm;}
 sub product {my $fsm=shift->clone; $fsm->_product(@_); return $fsm;}
 sub project {my $fsm=shift->clone; $fsm->_project(@_); return $fsm;}
-sub connect {my $fsm=shift->clone; $fsm->_connect(@_); return $fsm;}
 sub reverse {my $fsm=shift->clone; $fsm->_reverse(@_); return $fsm;}
+sub replace {my $fsm=shift->clone; $fsm->_reverse(@_); return $fsm;}
+sub insert_automaton {
+  my ($fsm1,$q1from,$q1to,$fsm2,$w) = @_;
+  $w = Gfsm::Semiring->new($fsm1->srtype)->one if (!defined($w));
+  $fsm1=$fsm1->clone;
+  $fsm1->_insert_automaton($q1from,$q1to,$fsm2,$w);
+  return $fsm1;
+}
 sub rmepsilon {my $fsm=shift->clone; $fsm->_rmepsilon(@_); return $fsm;}
 sub union {my $fsm=shift->clone; $fsm->_union(@_); return $fsm;}
 
@@ -398,6 +406,8 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
 
  $fsm = $fsm1->difference($fsm2); # lower difference
 
+ $fsm = $fsm1->insert_automaton($qfrom,$qto,$fsm2,$w); # insert a whole automaton
+
  $fsm = $fsm1->intersect($fsm2);  # lower acceptor intersection
 
  $fsm = $fsm1->invert();          # invert transdcuer sides
@@ -405,6 +415,8 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  $fsm = $fsm1->product($fsm2);    # compute Cartesian product of acceptors
 
  $fsm = $fsm1->project($side);    # project 1 side of a transducer
+
+ $fsm = $fsm1->replace($lo,$hi,$fsm2);  # replace arcs over ($lo:$hi) with $fsm2 in $fsm1
 
  $fsm = $fsm1->rmepsilon();       # remove epsilon-arcs
 
@@ -418,8 +430,9 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
 
  ##--------------------------------------------------------------
  ## Lookup & Path Enumeration
- $fsm   = $fst->lookup($labs);    # linear composition: $fsm=compose(id($labs),$fst)
- $paths = $fsm->paths();          # enumerate paths (non-cyclic $fsm only!)
+ $fsm   = $fst->lookup($labs);            # linear composition: $fsm=compose(id($labs),$fst)
+ $map   = $fst->lookup_full($labs,$fsm);  # linear composition to $fsm, returns stateid-map
+ $paths = $fsm->paths();                  # enumerate paths (non-cyclic $fsm only!)
 
 
 =head1 DESCRIPTION

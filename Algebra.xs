@@ -159,6 +159,18 @@ void
 gfsm_automaton_project(gfsmAutomaton *fsm, gfsmLabelSide which)
 
 #//------------------------------
+#/** Replace label-pair \a (lo,hi) with \a fsm2 in \a fsm1.
+# */
+void
+gfsm_automaton_replace(gfsmAutomaton *fsm1, gfsmLabelVal lo, gfsmLabelVal hi, gfsmAutomaton *fsm2)
+
+#//------------------------------
+#/** Insert automaton \a fsm2 into \a fsm1 between states \a q1from and \a q1to with weight \a w.
+# */
+void
+gfsm_automaton_insert_automaton(gfsmAutomaton *fsm1, gfsmStateId q1from, gfsmStateId q1to, gfsmAutomaton *fsm2, gfsmWeight w)
+
+#//------------------------------
 #/** Remove unreachable states from @fsm.  \returns @fsm */
 void
 gfsm_automaton_connect(gfsmAutomaton *fsm)
