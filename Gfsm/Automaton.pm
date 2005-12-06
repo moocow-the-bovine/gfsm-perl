@@ -297,12 +297,10 @@ sub lookup_viterbi {
 ## Paths: Wrappers
 ##======================================================================
 
-sub paths {
-  my ($fsm,$which) = @_;
-  return $fsm->paths_full(defined($which)
-			  ? $which
-			  : ($fsm->is_transducer() ? Gfsm::LSBoth : Gfsm::LSUpper));
-}
+#sub paths {
+#  my ($fsm,$which) = @_;
+#  return $fsm->paths(defined($which) ? $which : -1);
+#}
 
 1;
 
