@@ -12,17 +12,31 @@ PROTOTYPES: DISABLE
 ##--------------------------------------------------------------
 ## automaton paths (hash-refs)
 
-##-- ALLOCATION PROBLEMS -- NEW MEMORY ALLOCATOR ?
-
 AV *
-paths(gfsmAutomaton *fsm)
+paths_full(gfsmAutomaton *fsm, gfsmLabelSide which)
+PREINIT:
+ gfsmSet   *paths_s=NULL;
+CODE:
+ paths_s = gfsm_automaton_paths_full(fsm,NULL,which);
+ RETVAL  = gfsm_perl_paths_to_av(paths_s);
+ //
+ gfsm_set_free(paths_s);
+ sv_2mortal((SV*)RETVAL);
+ //
+OUTPUT:
+ RETVAL
+
+
+##-- ALLOCATION PROBLEMS -- NEW MEMORY ALLOCATOR ?
+AV *
+paths_old(gfsmAutomaton *fsm, gfsmLabelSide which)
 PREINIT:
  gfsmSet   *paths_s=NULL;
  GPtrArray *paths_a=NULL;
  int i,j;
  AV *labs=NULL;
 CODE:
- paths_s=gfsm_automaton_paths(fsm,NULL);
+ paths_s=gfsm_automaton_paths_full(fsm,NULL,which);
  paths_a=g_ptr_array_sized_new(gfsm_set_size(paths_s));
  gfsm_set_to_ptr_array(paths_s, paths_a);
  RETVAL = newAV();

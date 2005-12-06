@@ -10,11 +10,12 @@ MODULE = Gfsm		PACKAGE = Gfsm::Automaton         PREFIX = gfsm_automaton
 PROTOTYPES: DISABLE
 
 ##--------------------------------------------------------------
-## linear lookup
+## Linear lookup
 void
 gfsm_automaton_lookup(gfsmAutomaton *fst, gfsmLabelVector *input, gfsmAutomaton *result)
 CLEANUP:
  g_ptr_array_free(input,TRUE);
+<<<<<<< Lookup.xs
 
 ##--------------------------------------------------------------
 ## linear lookup, saving state-map
@@ -31,4 +32,13 @@ OUTPUT:
  RETVAL
 CLEANUP:
  g_ptr_array_free(statemap,TRUE);
+ g_ptr_array_free(input,TRUE);
+
+
+
+##--------------------------------------------------------------
+## Viterbi lookup
+void
+gfsm_automaton_lookup_viterbi(gfsmAutomaton *fst, gfsmLabelVector *input, gfsmAutomaton *trellis)
+CLEANUP:
  g_ptr_array_free(input,TRUE);

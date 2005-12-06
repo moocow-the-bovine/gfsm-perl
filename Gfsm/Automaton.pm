@@ -283,6 +283,27 @@ sub lookup_full {
   return wantarray ? ($result,$map) : $map;
 }
 
+
+## $trellis = $fst->lookup_viterbi($input)
+## $trellis = $fst->lookup_viterbi($input,$trellis)
+sub lookup_viterbi {
+  my ($fst,$input,$trellis) = @_;
+   $trellis = $fst->shadow() if (!$trellis);
+  $fst->_lookup_viterbi($input,$trellis);
+  return $trellis;
+}
+
+##======================================================================
+## Paths: Wrappers
+##======================================================================
+
+sub paths {
+  my ($fsm,$which) = @_;
+  return $fsm->paths_full(defined($which)
+			  ? $which
+			  : ($fsm->is_transducer() ? Gfsm::LSBoth : Gfsm::LSUpper));
+}
+
 1;
 
 __END__
@@ -429,9 +450,14 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  #... etc.
 
  ##--------------------------------------------------------------
- ## Lookup & Path Enumeration
+ ## Lookup
  $fsm   = $fst->lookup($labs);            # linear composition: $fsm=compose(id($labs),$fst)
  $map   = $fst->lookup_full($labs,$fsm);  # linear composition to $fsm, returns stateid-map
+
+ $trellis = $fst->lookup_viterbi($labs);  # Viterbi trellis construction
+
+ ##--------------------------------------------------------------
+ ## Serialization
  $paths = $fsm->paths();                  # enumerate paths (non-cyclic $fsm only!)
 
 
