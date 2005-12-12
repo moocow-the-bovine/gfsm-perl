@@ -9,6 +9,8 @@ blib
 *.gfst
 *.ps
 
+tmp
+
 *.bs
 big.*
 Gfsm.c

@@ -5,10 +5,16 @@
 
 CVS
 
+^\.\#
+\/\.\#
+
+\.o$
 \.gz$
 \.zip$
 
-\.tfst$
+^[^\/]*\.tfst$
+\-got\.tfst$
+tmp.*\.tfst$
 \.lab$
 \.gfst$
 
@@ -26,4 +32,4 @@ CVS
 ^Empty\.xs$
 ^Gfsm\.c$
 
-
+opgen\.sh$

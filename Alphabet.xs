@@ -66,19 +66,19 @@ OUTPUT:
 ##--------------------------------------------------------------
 ## Lookup & Manipulation
 
-#//-- insert a (key,label) pair
-gfsmLabelVal
-insert(gfsmAlphabet *abet, char *key, gfsmLabelVal label=gfsmNoLabel)
-CODE:
- RETVAL=gfsm_alphabet_insert(abet,key,label);
-OUTPUT:
- RETVAL
+#//-- insert a (key,label) pair : UNSAFE!
+#gfsmLabelVal
+#insert(gfsmAlphabet *abet, char *key, gfsmLabelVal label=gfsmNoLabel)
+#CODE:
+# RETVAL=gfsm_alphabet_insert(abet,key,label);
+#OUTPUT:
+# RETVAL
 
 #//-- get label of key, or insert new label
 gfsmLabelVal
-get_label(gfsmAlphabet *abet, char *key)
+get_label(gfsmAlphabet *abet, char *key, gfsmLabelVal label=gfsmNoLabel)
 CODE:
- RETVAL=gfsm_alphabet_get_label(abet,key);
+ RETVAL=gfsm_alphabet_get_full(abet,key,label);
 OUTPUT:
  RETVAL
 

@@ -9,6 +9,10 @@ MODULE = Gfsm		PACKAGE = Gfsm::Automaton           PREFIX = gfsm_automaton
 ##-- disable perl prototypes
 PROTOTYPES: DISABLE
 
+#/** Set optional */
+void
+gfsm_automaton_optional(gfsmAutomaton *fsm)
+
 #/** Compute transitive (@is_plus!=FALSE) or reflexive+transitive (@is_plus==FALSE)
 # *  closure of @fsm.
 # *  Destructively alters @fsm1.

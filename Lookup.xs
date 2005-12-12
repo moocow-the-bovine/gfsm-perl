@@ -13,6 +13,8 @@ PROTOTYPES: DISABLE
 ## Linear lookup
 void
 gfsm_automaton_lookup(gfsmAutomaton *fst, gfsmLabelVector *input, gfsmAutomaton *result)
+#CODE:
+# gfsm_automaton_lookup_full(fst,input,result,NULL);
 CLEANUP:
  g_ptr_array_free(input,TRUE);
 

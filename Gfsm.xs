@@ -19,27 +19,6 @@ BOOT:
  } 
 
 ##=====================================================================
-## Debug
-##=====================================================================
-AV *
-newav()
-CODE:
- RETVAL=newAV();
- sv_2mortal((SV*)RETVAL);
-OUTPUT:
- RETVAL
-
-##-- input=ok
-gfsmLabelVector *
-labvec(gfsmLabelVector *vec)
-CODE:
- //
-OUTPUT:
- vec
-CLEANUP:
- g_ptr_array_free(vec,TRUE);
-
-##=====================================================================
 ## Gfsm (Constants)
 ##=====================================================================
 INCLUDE: Constants.xs

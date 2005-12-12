@@ -211,6 +211,7 @@ sub viewps {
 ## Algebra: Wrappers
 ##======================================================================
 
+sub optional  { my $fsm=shift->clone; $fsm->_optional(@_); return $fsm;}
 sub closure   { my $fsm=shift->clone; $fsm->_closure(@_); return $fsm;}
 sub n_closure { my $fsm=shift->clone; $fsm->_n_closure(@_); return $fsm;}
 sub complement { my $fsm=shift->clone; $fsm->_complement(@_); return $fsm;}
@@ -406,6 +407,7 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  ##--------------------------------------------------------------
  ## Algebra (constructive)
 
+ $fsm = $fsm1->optional();    # set optional
  $fsm = $fsm1->closure();     # reflexive + transitive closure
  $fsm = $fsm1->closure(1);    # transitive closure
  $fsm = $fsm1->n_closure($n); # n-ary closure

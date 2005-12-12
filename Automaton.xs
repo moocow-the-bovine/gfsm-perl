@@ -185,6 +185,17 @@ CODE:
 OUTPUT:
  RETVAL
 
+#//-- get/set final-weight
+gfsmWeight
+final_weight(gfsmAutomaton *fsm, gfsmStateId id, ...)
+CODE:
+ if (items > 2) {
+   gfsm_automaton_set_final_state_full(fsm, id, TRUE, (gfsmWeight)SvNV(ST(2)));
+ }
+ RETVAL = gfsm_automaton_get_final_weight(fsm, id);
+OUTPUT:
+ RETVAL
+
 
 #/** Renumber states of an FSM */
 void
