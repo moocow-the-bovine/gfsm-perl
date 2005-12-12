@@ -1,2 +1,10 @@
 *~
 .*~
+
+tmp*.tfst
+tmp*.lab
+
+*.gfst
+*.dot
+*.ps
+*-got.tfst
