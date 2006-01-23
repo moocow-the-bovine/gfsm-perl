@@ -48,6 +48,40 @@ sub save {
 }
 
 ##--------------------------------------------------------------
+## I/O: Wrappers: Binary: strings
+
+## $bool = $fst->load_string(\$str)
+sub load_string {
+  require File::Temp;
+  my ($fsm,$sref) = @_;
+  my ($fh,$filename) = File::Temp::tempfile('gfsmXXXX', SUFFIX=>'.gfst', UNLINK=>0);
+  $fh->print($$sref);
+  $fh->close;
+  my $rc = $fsm->load($filename);
+  unlink($filename);
+  return $rc;
+}
+
+## $bool = $fst->save_string(\$str)
+sub save_string {
+  require File::Temp;
+  my ($fsm,$sref) = @_;
+  $$sref = undef;
+  my ($fh,$filename) = File::Temp::tempfile('gfsmXXXX', SUFFIX=>'.gfst', UNLINK=>0);
+  my $rc = $fsm->save($fh);
+  $fh->close;
+  return $rc if (!$rc);
+  $fh = IO::File->new("<$filename")
+    or die(ref($fsm)."::save_string(): open failed for temp file '$filename': $!");
+  local $/ = undef;
+  $$sref = <$fh>;
+  $fh->close;
+  unlink($filename);
+  return $rc;
+}
+
+
+##--------------------------------------------------------------
 ## I/O: Wrappers: Text
 
 ## $bool = $fsm->compile($filename_or_fh,%opts);
@@ -392,6 +426,9 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
 
  $bool = $fsm->load($filename_or_handle);   # load binary file
  $bool = $fsm->save($filename_or_handle);   # save binary file
+
+ $bool = $fsm->load_string(\$buffer);       # load from in-memory buffer
+ $bool = $fsm->save_string(\$buffer);       # save to in-memory buffer
 
  $bool = $fsm->compile($filename_or_handle, ?$abet_lo, ?$abet_hi, ?$abet_states);
          # compile AT&T-style text file (must be transducer format)
