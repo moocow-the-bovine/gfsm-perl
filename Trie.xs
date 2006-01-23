@@ -24,7 +24,11 @@ OUTPUT:
 ##--------------------------------------------------------------
 ## Methods: add paths
 gfsmStateId
-gfsm_trie_add_paths(gfsmTrie *trie, gfsmLabelVector *lo, gfsmLabelVector *hi=NULL, gfsmWeight w=0)
+gfsm_trie_add_paths(gfsmTrie *trie, gfsmLabelVector *lo, gfsmLabelVector *hi=NULL, gfsmWeight w=0, gboolean add_to_arcs=TRUE, gboolean add_to_state_final=TRUE, gboolean add_to_path_final=TRUE)
+CODE:
+ RETVAL = gfsm_trie_add_paths_full(trie, lo, hi, w, add_to_arcs, add_to_state_final, add_to_path_final);
+OUTPUT:
+ RETVAL
 
 ##--------------------------------------------------------------
 ## Methods: find arcs
@@ -54,7 +58,7 @@ OUTPUT:
 ##--------------------------------------------------------------
 ## Methods: find or insert arcs
 gfsmStateId
-gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w)
+gfsm_trie_get_arc_lower(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w, gboolean add_weight=TRUE)
 
 gfsmStateId
-gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w)
+gfsm_trie_get_arc_upper(gfsmTrie *trie, gfsmStateId qid, gfsmLabelVal lab, gfsmWeight w, gboolean add_weight=TRUE)
