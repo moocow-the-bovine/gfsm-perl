@@ -80,6 +80,50 @@ sub save_string {
   return $rc;
 }
 
+##--------------------------------------------------------------
+## I/O: Wrappers: Binary: Storable
+
+## ($serialized, $ref1, ...) = $fsm->STORABLE_freeze($cloning)
+sub STORABLE_freeze {
+  my ($fsm,$cloning) = @_;
+  #return $fsm->clone if ($cloning); ##-- weirdness
+
+  my $buf = undef;
+  $fsm->save_string(\$buf)
+    or croak(ref($fsm)."::STORABLE_freeze(): error saving to string: $Gfsm::Error\n");
+
+  return $buf;
+}
+
+## $fsm = STORABLE_thaw($fsm, $cloning, $serialized, $ref1,...)
+sub STORABLE_thaw {
+  my ($fsm,$cloning) = @_[0,1];
+
+  ##-- HACK
+  ##   + Storable already bless()d a reference to undef for us: this is BAD
+  ##   + bless() it into UNIVERSAL so that Gfsm::Automaton::DESTROY() doesn't get triggered
+  my $fsmclass = ref($fsm);
+  bless($fsm, 'UNIVERSAL');
+
+  ##-- check for dclone() operations: weirdness here
+  #if ($cloning) {
+  #  $$fsm = ${$_[2]};
+  #  bless($fsm,  ref($_[2]));
+  #  bless($_[2], 'UNIVERSAL'); ##-- and don't DESTROY() the clone...
+  #  return;
+  #}
+
+  ##-- we must make a *real* new object: $fsmnew
+  my $fsmnew = $fsmclass->new();
+  $$fsm = $$fsmnew;
+  bless($fsmnew,'UNIVERSAL');  ##-- ... but not destroy it...
+  undef($fsmnew);
+  bless($fsm,$fsmclass);       ##-- and re-issue an appropriate blessing on $fsm
+
+  ##-- now do the actual deed
+  $fsm->load_string(\$_[2])
+    or croak(ref($fsm)."::STORABLE_thaw(): error loading from string: $Gfsm::Error\n");
+}
 
 ##--------------------------------------------------------------
 ## I/O: Wrappers: Text

@@ -3,6 +3,9 @@
 use lib qw(./blib/lib ./blib/arch);
 use Gfsm;
 
+
+
+
 sub loadlabs {
   $abet = Gfsm::Alphabet->new();
   $abet->load('test.lab');
@@ -66,6 +69,17 @@ sub newmany {
   for ($i=0; $i < $NITERS; $i++) {
     $fst = Gfsm::Automaton->new();
   }
+}
+
+
+
+package main;
+sub storetest {
+  require Storable;
+  loadfsm();
+  use vars qw($fsm_f $fsm_t);
+  $fsm_f = Storable::freeze($fsm);
+  $fsm_t = Storable::thaw($fsm_f);
 }
 
 
