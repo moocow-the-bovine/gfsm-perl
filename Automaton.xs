@@ -226,37 +226,95 @@ gfsm_automaton_arcsort(gfsmAutomaton *fsm, gfsmArcSortMode mode)
 ##=====================================================================
 
 ##--------------------------------------------------------------
-## I/O: binary
+## I/O: binary: FILE*
 
 #/** Load an automaton from a stored binary file (implicitly clear()s @fsm) */
 gboolean
 _load(gfsmAutomaton *fsm, FILE *f)
 PREINIT:
  gfsmError *err=NULL;
+ gfsmIOHandle *ioh=NULL;
 CODE:
- RETVAL=gfsm_automaton_load_bin_file(fsm, f, &err);
+ ioh    = gfsmio_new_zfile(f,"rb",-1);
+ RETVAL = gfsm_automaton_load_bin_handle(fsm, ioh, &err);
  if (err && err->message) {
    SV *perlerr = get_sv("Gfsm::Error",TRUE);
    sv_setpv(perlerr, err->message);
    g_error_free(err);
+ }
+ if (ioh) {
+   /*gfsmio_close(ioh);*/
+   gfsmio_handle_free(ioh);
  }
 OUTPUT:
   RETVAL
 
-#/** Save an automaton to a binary file */
+
+#/** Save an automaton to a binary FILE* */
 gboolean
-_save(gfsmAutomaton *fsm, FILE *f)
+_save(gfsmAutomaton *fsm, FILE *f, int zlevel=-1)
 PREINIT:
  gfsmError *err=NULL;
+ gfsmIOHandle *ioh=NULL;
 CODE:
- RETVAL=gfsm_automaton_save_bin_file(fsm, f, &err);
+ ioh    = gfsmio_new_zfile(f,"wb",zlevel);
+ RETVAL = gfsm_automaton_save_bin_handle(fsm, ioh, &err);
  if (err && err->message) {
    SV *perlerr = get_sv("Gfsm::Error",TRUE);
    sv_setpv(perlerr, err->message);
    g_error_free(err);
  }
+ if (ioh) {
+   if (ioh->iotype==gfsmIOTZFile) gfsmio_close(ioh);
+   gfsmio_handle_free(ioh);
+ }
 OUTPUT:
   RETVAL
+
+##--------------------------------------------------------------
+## I/O: binary: SV*
+
+#/** Load an automaton from a scalar buffer (implicitly clear()s @fsm) */
+gboolean
+load_string(gfsmAutomaton *fsm, SV *sv)
+PREINIT:
+ gfsmError *err=NULL;
+ gfsmIOHandle *ioh=NULL;
+CODE:
+ ioh    = gfsmperl_io_new_sv(sv,0);
+ RETVAL = gfsm_automaton_load_bin_handle(fsm, ioh, &err);
+ if (err && err->message) {
+   SV *perlerr = get_sv("Gfsm::Error",TRUE);
+   sv_setpv(perlerr, err->message);
+   g_error_free(err);
+ }
+ if (ioh) {
+   gfsmperl_io_free_sv(ioh);
+ }
+OUTPUT:
+  RETVAL
+
+#/** Save an automaton to a scalar */
+gboolean
+save_string(gfsmAutomaton *fsm, SV *sv)
+PREINIT:
+ gfsmError *err=NULL;
+ gfsmIOHandle *ioh=NULL;
+CODE:
+ ioh = gfsmperl_io_new_sv(sv,0);
+ RETVAL=gfsm_automaton_save_bin_handle(fsm, ioh, &err);
+ if (err && err->message) {
+   SV *perlerr = get_sv("Gfsm::Error",TRUE);
+   sv_setpv(perlerr, err->message);
+   g_error_free(err);
+ }
+ if (ioh) {
+   gfsmperl_io_free_sv(ioh);
+ }
+OUTPUT:
+  RETVAL
+
+
 
 ##--------------------------------------------------------------
 ## I/O: text
@@ -270,7 +328,7 @@ _compile(gfsmAutomaton *fsm, \
 PREINIT:
  gfsmError *err=NULL;
 CODE:
- RETVAL=gfsm_automaton_compile_file_full(fsm, f, abet_lo, abet_hi, abet_Q, &err);
+ RETVAL = gfsm_automaton_compile_file_full(fsm, f, abet_lo, abet_hi, abet_Q, &err);
  if (err && err->message) {
    SV *perlerr = get_sv("Gfsm::Error",TRUE);
    sv_setpv(perlerr, err->message);

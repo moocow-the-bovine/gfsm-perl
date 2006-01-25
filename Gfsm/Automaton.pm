@@ -2,7 +2,6 @@ package Gfsm::Automaton;
 require Gfsm::Alphabet;
 
 use IO::File;
-use File::Temp qw(tempfile);
 use Carp;
 
 ##======================================================================
@@ -33,15 +32,16 @@ sub load {
   return $rc;
 }
 
-## $bool = $fsm->save($filename_or_fh);
+## $bool = $fsm->save($filename_or_fh, $zlevel=-1);
 sub save {
-  my ($fsm,$file) = @_;
+  my ($fsm,$file,$zlevel) = @_;
   my $fh = ref($file) ? $file : IO::File->new(">$file");
   if (!$fh) {
     carp(ref($fsm),"::save(): could not open file '$file': $!");
     return 0;
   }
-  my $rc = $fsm->_save($fh);
+  $zlevel = -1 if (!defined($zlevel));
+  my $rc = $fsm->_save($fh,$zlevel);
   carp(ref($fsm),"::save(): error saving file '$file': $Gfsm::Error\n") if (!$rc);
   $fh->close() if (!ref($file));
   return $rc;
@@ -50,34 +50,16 @@ sub save {
 ##--------------------------------------------------------------
 ## I/O: Wrappers: Binary: strings
 
-## $bool = $fst->load_string(\$str)
-sub load_string {
-  require File::Temp;
-  my ($fsm,$sref) = @_;
-  my ($fh,$filename) = File::Temp::tempfile('gfsmXXXX', SUFFIX=>'.gfst', UNLINK=>0);
-  $fh->print($$sref);
-  $fh->close;
-  my $rc = $fsm->load($filename);
-  unlink($filename);
-  return $rc;
-}
+##-- CONTINUE HERE: eliminate File::Temp stuff, fix Storable hooks, etc.
 
-## $bool = $fst->save_string(\$str)
-sub save_string {
-  require File::Temp;
-  my ($fsm,$sref) = @_;
-  $$sref = undef;
-  my ($fh,$filename) = File::Temp::tempfile('gfsmXXXX', SUFFIX=>'.gfst', UNLINK=>0);
-  my $rc = $fsm->save($fh);
-  $fh->close;
-  return $rc if (!$rc);
-  $fh = IO::File->new("<$filename")
-    or die(ref($fsm)."::save_string(): open failed for temp file '$filename': $!");
-  local $/ = undef;
-  $$sref = <$fh>;
-  $fh->close;
-  unlink($filename);
-  return $rc;
+## $bool = $fst->load_string($str)
+
+## $bool = $fst->save_string($str)
+## $str_or_undef  = $fst->as_string()
+sub as_string {
+  my $fst = shift;
+  my $str = '';
+  return $fst->save_string($str) ? $str : undef;
 }
 
 ##--------------------------------------------------------------
@@ -88,40 +70,37 @@ sub STORABLE_freeze {
   my ($fsm,$cloning) = @_;
   #return $fsm->clone if ($cloning); ##-- weirdness
 
-  my $buf = undef;
-  $fsm->save_string(\$buf)
+  my $buf = '';
+  $fsm->save_string($buf)
     or croak(ref($fsm)."::STORABLE_freeze(): error saving to string: $Gfsm::Error\n");
 
-  return $buf;
+  return ('',\$buf);
 }
 
 ## $fsm = STORABLE_thaw($fsm, $cloning, $serialized, $ref1,...)
 sub STORABLE_thaw {
   my ($fsm,$cloning) = @_[0,1];
 
-  ##-- HACK
+  ##-- STRANGENESS (race condition on perl program exit)
   ##   + Storable already bless()d a reference to undef for us: this is BAD
-  ##   + bless() it into UNIVERSAL so that Gfsm::Automaton::DESTROY() doesn't get triggered
-  my $fsmclass = ref($fsm);
-  bless($fsm, 'UNIVERSAL');
+  ##   + hack: set its value to 0 (NULL) so that DESTROY() ignores it
+  $$fsm = 0;
 
   ##-- check for dclone() operations: weirdness here
   #if ($cloning) {
   #  $$fsm = ${$_[2]};
-  #  bless($fsm,  ref($_[2]));
-  #  bless($_[2], 'UNIVERSAL'); ##-- and don't DESTROY() the clone...
+  #  ${$_[2]} = 0; ##-- and don't DESTROY() the clone...
   #  return;
   #}
 
   ##-- we must make a *real* new object: $fsmnew
-  my $fsmnew = $fsmclass->new();
-  $$fsm = $$fsmnew;
-  bless($fsmnew,'UNIVERSAL');  ##-- ... but not destroy it...
+  my $fsmnew = ref($fsm)->new();
+  $$fsm    = $$fsmnew;
+  $$fsmnew = 0;                ##-- ... but not destroy it...
   undef($fsmnew);
-  bless($fsm,$fsmclass);       ##-- and re-issue an appropriate blessing on $fsm
 
   ##-- now do the actual deed
-  $fsm->load_string(\$_[2])
+  $fsm->load_string(${$_[3]})
     or croak(ref($fsm)."::STORABLE_thaw(): error loading from string: $Gfsm::Error\n");
 }
 
@@ -262,14 +241,15 @@ sub draw_dot {
 sub viewps {
   my ($fsm,%opts) = @_;
   my ($fh,$dotfilename,$psfilename);
-  ($fh,$dotfilename) = tempfile("gfsmXXXXX", SUFFIX=>'.dot', UNLINK=>1);
+  require File::Temp;
+  ($fh,$dotfilename) = File::Temp::tempfile("gfsmXXXXX", SUFFIX=>'.dot', UNLINK=>1);
   $fh->close;
   if (!$fsm->draw_dot($dotfilename,%opts)) {
     carp(ref($fsm),"::viewps(): draw_dot(): Error\n");
     return;
   }
   $fh->close;
-  ($fh,$psfilename) = tempfile("gfsmXXXXX", SUFFIX=>'.ps', UNLINK=>1);
+  ($fh,$psfilename) = File::Temp::tempfile("gfsmXXXXX", SUFFIX=>'.ps', UNLINK=>1);
   if (system("$DOT -Tps -o$psfilename $dotfilename")!=0) {
     carp(ref($fsm),"::viewps(): dot: Error: $!");
     return;
@@ -473,8 +453,8 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  $bool = $fsm->load($filename_or_handle);   # load binary file
  $bool = $fsm->save($filename_or_handle);   # save binary file
 
- $bool = $fsm->load_string(\$buffer);       # load from in-memory buffer
- $bool = $fsm->save_string(\$buffer);       # save to in-memory buffer
+ $bool = $fsm->load_string($buffer);        # load from in-memory buffer
+ $bool = $fsm->save_string($buffer);        # save to in-memory buffer
 
  $bool = $fsm->compile($filename_or_handle, ?$abet_lo, ?$abet_hi, ?$abet_states);
          # compile AT&T-style text file (must be transducer format)

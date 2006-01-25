@@ -1,5 +1,12 @@
 #include "GfsmPerl.h"
+#include <fcntl.h>
 
+#undef VERSION
+#include <gfsmConfig.h>
+
+/*======================================================================
+ * Memory Stuff
+ */
 GMemVTable gfsm_perl_vtable =
   {
     gfsm_perl_malloc,
@@ -72,4 +79,63 @@ AV *gfsm_perl_ptr_array_to_av_uv(GPtrArray *ary)
   }
   sv_2mortal((SV*)av);
   return av;
+}
+
+/*======================================================================
+ * I/O: Constructors: SV*
+ */
+gfsmIOHandle *gfsmperl_io_new_sv(SV *sv, size_t pos)
+{
+  gfsmPerlSVHandle *svh = g_new(gfsmPerlSVHandle,1);
+  gfsmIOHandle *ioh = gfsmio_handle_new(gfsmIOTUser,svh);
+
+  SvUTF8_off(sv); //-- unset UTF8 flag for this SV*
+
+  svh->sv = sv;
+  svh->pos = pos;
+
+  ioh->read_func = (gfsmIOReadFunc)gfsmperl_read_sv;
+  ioh->write_func = (gfsmIOWriteFunc)gfsmperl_write_sv;
+  ioh->eof_func = (gfsmIOEofFunc)gfsmperl_eof_sv;
+
+  return ioh;
+}
+
+void gfsmperl_io_free_sv(gfsmIOHandle *ioh)
+{
+  gfsmPerlSVHandle *svh = (gfsmPerlSVHandle*)ioh->handle;
+  g_free(svh);
+  gfsmio_handle_free(ioh);
+}
+
+/*======================================================================
+ * I/O: Methods: SV*
+ */
+gboolean gfsmperl_eof_sv(gfsmPerlSVHandle *svh)
+{ return svh && svh->sv ? (STRLEN)svh->pos >= sv_len(svh->sv) : TRUE; }
+
+gboolean gfsmperl_read_sv(gfsmPerlSVHandle *svh, void *buf, size_t nbytes)
+{
+  char *svbytes;
+  STRLEN len;
+  if (!svh || !svh->sv) return FALSE;
+
+  svbytes = sv_2pvbyte(svh->sv, &len);
+  if ((STRLEN)(svh->pos+nbytes) <= len) {
+    //-- normal case: just copy
+    memcpy(buf, svbytes+svh->pos, nbytes);
+    svh->pos += nbytes;
+    return TRUE;
+  }
+  //-- overflow: grab what we can
+  memcpy(buf, svbytes+svh->pos, len-svh->pos);
+  svh->pos = len;
+  return FALSE;
+}
+
+gboolean gfsmperl_write_sv(gfsmPerlSVHandle *svh, const void *buf, size_t nbytes)
+{
+  if (!svh || !svh->sv) return FALSE;
+  sv_catpvn(svh->sv, buf, (STRLEN)nbytes);
+  return TRUE;
 }

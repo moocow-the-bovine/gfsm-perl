@@ -73,6 +73,50 @@ sub newmany {
 
 
 
+##--------------------------------------------------------------
+## I/O: Wrappers: Binary: Storable
+package Gfsm::Automaton;
+
+## ($serialized, $ref1, ...) = $fsm->STORABLE_freeze($cloning)
+sub STORABLE_freeze_new {
+  my ($fsm,$cloning) = @_;
+  #return $fsm->clone if ($cloning); ##-- weirdness
+
+  my $buf = '';
+  $fsm->save_string($buf)
+    or croak(ref($fsm)."::STORABLE_freeze(): error saving to string: $Gfsm::Error\n");
+
+  return ($buf);
+}
+
+## $fsm = STORABLE_thaw($fsm, $cloning, $serialized, $ref1,...)
+sub STORABLE_thaw_new {
+  my ($fsm,$cloning) = @_[0,1];
+
+  ##-- STRANGENESS (race condition on perl program exit)
+  ##   + Storable already bless()d a reference to undef for us: this is BAD
+  ##   + hack: set its value to 0 (NULL) so that DESTROY() ignores it
+  $$fsm = 0;
+
+  ##-- check for dclone() operations: weirdness here
+  #if ($cloning) {
+  #  $$fsm = ${$_[2]};
+  #  ${$_[2]} = 0; ##-- and don't DESTROY() the clone...
+  #  return;
+  #}
+
+  ##-- we must make a *real* new object: $fsmnew
+  my $fsmnew = ref($fsm)->new();
+  $$fsm    = $$fsmnew;
+  $$fsmnew = 0;                ##-- ... but not destroy it...
+  undef($fsmnew);
+
+  ##-- now do the actual deed
+  $fsm->load_string(${$_[3]})
+    or croak(ref($fsm)."::STORABLE_thaw(): error loading from string: $Gfsm::Error\n");
+}
+
+
 package main;
 sub storetest {
   require Storable;
