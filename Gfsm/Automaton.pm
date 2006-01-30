@@ -309,7 +309,7 @@ sub reverse {my $fsm=shift->clone; $fsm->_reverse(@_); return $fsm;}
 sub replace {my $fsm=shift->clone; $fsm->_reverse(@_); return $fsm;}
 sub insert_automaton {
   my ($fsm1,$q1from,$q1to,$fsm2,$w) = @_;
-  $w = Gfsm::Semiring->new($fsm1->srtype)->one if (!defined($w));
+  $w = Gfsm::Semiring->new($fsm1->semiring_type)->one if (!defined($w));
   $fsm1=$fsm1->clone;
   $fsm1->_insert_automaton($q1from,$q1to,$fsm2,$w);
   return $fsm1;
