@@ -40,6 +40,85 @@ sub save {
   return $rc;
 }
 
+##--------------------------------------------------------------
+## Converters: hash
+
+## \%sym2id_hash = $abet->toHash()
+## \%sym2id_hash = $abet->toHash(\%hash)
+*asHash = \&toHash;
+sub toHash {
+  my ($abet,$h) = @_;
+  $h = {} if (!defined($h));
+  %$h = map { $abet->find_key($_)=>$_ } @{$abet->labels()};
+  return $h;
+}
+
+## $abet = $abet->fromHash(\%sym2id_hash)
+##  + does NOT implicitly clear alphabet
+sub fromHash {
+  my ($abet,$h) = @_;
+  my ($key,$lab);
+  while (($key,$lab)=each(%$h)) {
+    $abet->get_label($key,(defined($lab) ? $lab : $Gfsm::noLabel));
+  }
+  return $abet;
+}
+
+##--------------------------------------------------------------
+## Converters: array
+
+## \@id2sym_array = $abet->toArray()
+## \@id2sym_array = $abet->toArray(\@id2sym_array)
+*asArray = \&toArray;
+sub toArray {
+  my ($abet,$ary) = @_;
+  $ary = [] if (!defined($ary));
+  $ary->[$_] = $abet->find_key($_) foreach (@{$abet->labels()});
+  return $ary;
+}
+
+## $abet = $abet->fromArray(\@id2sym_array)
+##  + does NOT implicitly clear alphabet
+sub fromArray {
+  my ($abet,$ary) = @_;
+  my ($i,$key);
+  foreach $i (0..$#$ary) {
+    next if (!defined($key=$ary->[$i]));
+    $abet->get_label($key,$i);
+  }
+  return $abet;
+}
+
+##--------------------------------------------------------------
+## I/O: Wrappers: Binary: Storable
+
+## ($serialized, $ref1, ...) = $fsm->STORABLE_freeze($cloning)
+sub STORABLE_freeze {
+  my ($abet,$cloning) = @_;
+  #return $abet->clone if ($cloning); ##-- weirdness
+  return ('',$abet->toHash);
+}
+
+## $abet = STORABLE_thaw($abet, $cloning, $serialized, $ref1,...)
+sub STORABLE_thaw {
+  my ($abet,$cloning) = @_[0,1];
+
+  ##-- STRANGENESS (race condition on perl program exit)
+  ##   + Storable already bless()d a reference to undef for us: this is BAD
+  ##   + hack: set its value to 0 (NULL) so that DESTROY() ignores it
+  $$abet = 0;
+
+  ##-- we must make a *real* new object: $new
+  my $new = ref($abet)->new();
+  $$abet  = $$new;
+  $$new   = 0;                ##-- ... but not destroy it...
+  undef($new);
+
+  ##-- now do the actual deed
+  $abet->fromHash($_[3])
+    or croak(ref($abet)."::STORABLE_thaw(): error loading from hashref.\n");
+}
+
 ##======================================================================
 ## Methods: Wrappers
 ##======================================================================
@@ -96,6 +175,14 @@ Gfsm::Alphabet - object-oriented interface to libgfsm string alphabets.
  ## String utilities
  $labs = $abet->string_to_labels($str,$emit_warnings=1);               # lab-ify by character
  $str  = $abet->labels_to_string($labs,$emit_warnings=1,$att_style=0); # stringify
+
+ ##--------------------------------------------------------------
+ ## Conversion
+ $abet      = $abet->fromHash(\%string2id);  # add mappings from \%string2id_hash
+ $string2id = $abet->toHash();               # export mappings to hash-ref
+
+ $abet      = $abet->fromArray(\@id2string); # add mappings from \@id2string
+ $id2string = $abet->toArray();              # export mappings to array-ref
 
 =head1 DESCRIPTION
 

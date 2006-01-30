@@ -50,9 +50,8 @@ sub save {
 ##--------------------------------------------------------------
 ## I/O: Wrappers: Binary: strings
 
-##-- CONTINUE HERE: eliminate File::Temp stuff, fix Storable hooks, etc.
-
 ## $bool = $fst->load_string($str)
+## - XS
 
 ## $bool = $fst->save_string($str)
 ## $str_or_undef  = $fst->as_string()
