@@ -453,14 +453,20 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  $bool = $fsm->load($filename_or_handle);   # load binary file
  $bool = $fsm->save($filename_or_handle);   # save binary file
 
- $bool = $fsm->load_string($buffer);        # load from in-memory buffer
- $bool = $fsm->save_string($buffer);        # save to in-memory buffer
+ $bool = $fsm->load_string($buffer);        # load from in-memory buffer $string
+ $bool = $fsm->save_string($buffer);        # save to in-memory buffer $string
 
  $bool = $fsm->compile($filename_or_handle, ?$abet_lo, ?$abet_hi, ?$abet_states);
-         # compile AT&T-style text file (must be transducer format)
+         # compile AT&T-style text format file (transducer format only)
 
  $bool = $fsm->print_att($filename_or_handle, ?$abet_lo, ?$abet_hi, ?$abet_states);
-         # save AT&T-style text file (transducer format)
+         # save AT&T-style text format file (transducer format only)
+
+ $bool = $fsm->compile_string($string, ?$abet_lo, ?$abet_hi, ?$abet_states);
+         # compile AT&T-style text format $string
+
+ $bool = $fsm->print_att_string($string, ?$abet_lo, ?$abet_hi, ?$abet_states);
+         # save AT&T-style text format $string
 
  $bool = $fsm->draw_vcg($filename_or_handle,%options);  # save in VCG format
  $bool = $fsm->draw_dot($filename_or_handle,%options);  # save in DOT format

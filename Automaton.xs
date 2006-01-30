@@ -276,12 +276,12 @@ OUTPUT:
 
 #/** Load an automaton from a scalar buffer (implicitly clear()s @fsm) */
 gboolean
-load_string(gfsmAutomaton *fsm, SV *sv)
+load_string(gfsmAutomaton *fsm, SV *str)
 PREINIT:
  gfsmError *err=NULL;
  gfsmIOHandle *ioh=NULL;
 CODE:
- ioh    = gfsmperl_io_new_sv(sv,0);
+ ioh    = gfsmperl_io_new_sv(str,0);
  RETVAL = gfsm_automaton_load_bin_handle(fsm, ioh, &err);
  if (err && err->message) {
    SV *perlerr = get_sv("Gfsm::Error",TRUE);
@@ -296,12 +296,12 @@ OUTPUT:
 
 #/** Save an automaton to a scalar */
 gboolean
-save_string(gfsmAutomaton *fsm, SV *sv)
+save_string(gfsmAutomaton *fsm, SV *str)
 PREINIT:
  gfsmError *err=NULL;
  gfsmIOHandle *ioh=NULL;
 CODE:
- ioh = gfsmperl_io_new_sv(sv,0);
+ ioh = gfsmperl_io_new_sv(str,0);
  RETVAL=gfsm_automaton_save_bin_handle(fsm, ioh, &err);
  if (err && err->message) {
    SV *perlerr = get_sv("Gfsm::Error",TRUE);
@@ -338,15 +338,40 @@ OUTPUT:
  RETVAL
 
 gboolean
+compile_string(gfsmAutomaton *fsm, \
+	       SV            *str, \
+	       gfsmAlphabet  *abet_lo=NULL, \
+	       gfsmAlphabet  *abet_hi=NULL, \
+	       gfsmAlphabet  *abet_Q=NULL)
+PREINIT:
+ gfsmError *err=NULL;
+ gfsmIOHandle *ioh=NULL;
+CODE:
+ ioh    = gfsmperl_io_new_sv(str,0);
+ RETVAL = gfsm_automaton_compile_handle(fsm, ioh, abet_lo, abet_hi, abet_Q, &err);
+ if (err && err->message) {
+   SV *perlerr = get_sv("Gfsm::Error",TRUE);
+   sv_setpv(perlerr, err->message);
+   g_error_free(err);
+ }
+ if (ioh) {
+   gfsmperl_io_free_sv(ioh);
+ }
+OUTPUT:
+  RETVAL
+
+
+gboolean
 _print_att(gfsmAutomaton *fsm, \
 	   FILE *f, \
 	   gfsmAlphabet *abet_lo=NULL, \
 	   gfsmAlphabet *abet_hi=NULL, \
-	   gfsmAlphabet *abet_Q=NULL)
+	   gfsmAlphabet *abet_Q=NULL, \
+	   int           zlevel=0)
 PREINIT:
  gfsmError *err=NULL;
 CODE:
- RETVAL=gfsm_automaton_print_file_full(fsm, f, abet_lo, abet_hi, abet_Q, &err);
+ RETVAL=gfsm_automaton_print_file_full(fsm, f, abet_lo, abet_hi, abet_Q, zlevel, &err);
  if (err && err->message) {
    SV *perlerr = get_sv("Gfsm::Error",TRUE);
    sv_setpv(perlerr, err->message);
@@ -354,6 +379,30 @@ CODE:
  }
 OUTPUT:
  RETVAL
+
+gboolean
+print_att_string(gfsmAutomaton *fsm, \
+		 SV            *str, \
+		 gfsmAlphabet  *abet_lo=NULL, \
+		 gfsmAlphabet  *abet_hi=NULL, \
+		 gfsmAlphabet  *abet_Q=NULL)
+PREINIT:
+ gfsmError *err=NULL;
+ gfsmIOHandle *ioh=NULL;
+CODE:
+ ioh    = gfsmperl_io_new_sv(str,0);
+ RETVAL = gfsm_automaton_print_handle(fsm, ioh, abet_lo, abet_hi, abet_Q, &err);
+ if (err && err->message) {
+   SV *perlerr = get_sv("Gfsm::Error",TRUE);
+   sv_setpv(perlerr, err->message);
+   g_error_free(err);
+ }
+ if (ioh) {
+   gfsmperl_io_free_sv(ioh);
+ }
+OUTPUT:
+  RETVAL
+
 
 ##--------------------------------------------------------------
 ## I/O: draw: vcg
