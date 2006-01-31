@@ -196,6 +196,9 @@ CODE:
 OUTPUT:
  RETVAL
 
+#/** Get output-degree of a state */
+guint
+gfsm_automaton_out_degree(gfsmAutomaton *fsm, gfsmStateId id)
 
 #/** Renumber states of an FSM */
 void

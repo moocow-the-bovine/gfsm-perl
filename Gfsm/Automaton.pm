@@ -416,6 +416,9 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  $fsm->remove_state($id);                 # remove a state from an FSM
 
  $bool = $fsm->is_final($id,?$bool);      # get/set final-flag for state $id
+
+ $deg  = $fsm->out_degree($id);           # get number of outgoing arcs for state $id
+
  $w    = $fsm->final_weight($id,?$w);     # get/set final weight for state $id
 
  $fsm->renumber_states();                 # close gaps in stateid numbering
