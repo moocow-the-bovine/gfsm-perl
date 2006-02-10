@@ -115,8 +115,47 @@ sub STORABLE_thaw_new {
   $fsm->load_string(${$_[3]})
     or croak(ref($fsm)."::STORABLE_thaw(): error loading from string: $Gfsm::Error\n");
 }
+package main;
 
 
+##--------------------------------------------------------------
+## Viterbi
+
+sub vload {
+  $vlo = Gfsm::Alphabet->new(); $vlo->load('vit-lower.lab');
+  $vhi = Gfsm::Alphabet->new(); $vhi->load('vit-upper.lab');
+  $vq  = Gfsm::Alphabet->new(); $vq->load('vit-states.lab');
+
+  $vfsm = Gfsm::Automaton->new();
+  $vfsm->compile('vit.tfst',lower=>$vlo,upper=>$vhi,states=>$vq);
+}
+
+sub vtest {
+  my $istr  = shift;
+  $istr = 'aaab' if (!$istr);
+  our $ilabs = $vlo->string_to_labels($istr);
+  our $trellis = $vfsm->shadow;
+
+  $vfsm->lookup_viterbi($ilabs, $trellis);
+  our $vpaths = $trellis->viterbi_trellis_paths($Gfsm::LSBoth);
+  our $vbest  = $trellis->viterbi_trellis_bestpath($Gfsm::LSBoth);
+}
+
+sub vpaths {
+  return map { (sprintf("<%.2f> ", $_->{w})
+		.$vlo->labels_to_string(defined($_->{lo}) ? $_->{lo} : '')
+		." : "
+		.$vhi->labels_to_string(defined($_->{hi}) ? $_->{hi} : '')
+	       )
+	     } @_;
+}
+
+sub vview { $vfsm->viewps(vlabargs(),states=>$vq,@_); }
+sub vtview { $trellis->viewps(vlabargs(),@_); }
+sub vlabargs { return (lower=>$vlo,upper=>$vhi); }
+
+##--------------------------------------------------------------
+## MAIN
 package main;
 sub storetest {
   require Storable;

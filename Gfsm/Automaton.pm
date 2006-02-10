@@ -531,6 +531,8 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  ## Serialization
  $paths = $fsm->paths();                  # enumerate paths (non-cyclic $fsm only!)
 
+ $paths = $trellis->viterbi_trellis_paths();    # enumerate Viterbi trellis paths
+ $best  = $trellis->viterbi_trellis_bestpath(); # get best Viterbi trellis path
 
 =head1 DESCRIPTION
 
