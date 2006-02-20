@@ -360,6 +360,12 @@ sub lookup_viterbi {
 #  return $fsm->paths(defined($which) ? $which : -1);
 #}
 
+##======================================================================
+## Trie: Wrappers & aliases
+##======================================================================
+*add_path    = \&add_paths;
+*find_prefix = \&find_prefixes;
+
 1;
 
 __END__
@@ -533,6 +539,22 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
 
  $paths = $trellis->viterbi_trellis_paths();    # enumerate Viterbi trellis paths
  $best  = $trellis->viterbi_trellis_bestpath(); # get best Viterbi trellis path
+
+ ##--------------------------------------------------------------
+ ## Tries
+ $trie = Gfsm::Automaton->newTrie;
+
+ $qid = $trie->add_paths(\@lo,\@hi);
+ $qid = $trie->add_paths(\@lo,\@hi, $w);
+ $qid = $trie->add_paths(\@lo,\@hi, $w, $add_to_arcs, $add_to_state_final, $add_to_path_final);
+
+ ($qid,$lo_i,$hi_i,$w_last) = $trie->find_prefixes(\@lo,\@hi);
+
+ $qid_to = $trie->find_arc_lower($qid_from, $lab_lo);  ##-- target state or Gfsm::noState()
+ $qid_to = $trie->find_arc_upper($qid_from, $lab_hi);  ##-- target state or Gfsm::noState()
+
+ $qid_to = $trie->get_arc_lower($qid_from, $lab_lo);   ##-- find or insert arc
+ $qid_to = $trie->get_arc_upper($qid_from, $lab_hi);   ##-- find or insert arc
 
 =head1 DESCRIPTION
 

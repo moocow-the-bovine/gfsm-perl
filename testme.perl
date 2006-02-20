@@ -155,6 +155,18 @@ sub vtview { $trellis->viewps(vlabargs(),@_); }
 sub vlabargs { return (lower=>$vlo,upper=>$vhi); }
 
 ##--------------------------------------------------------------
+## Tries
+
+sub gentrie {
+  $trie = Gfsm::Automaton->newTrie();
+  $trie->add_paths($_,[], 1, 1,0,1) foreach ([1,2,3],[1,2],[1,2,1],[1,1,1]);
+}
+
+sub viewtrie {
+  $trie->viewps((defined($abet) ? (labels=>$abet) : qw()), @_);
+}
+
+##--------------------------------------------------------------
 ## MAIN
 package main;
 sub storetest {

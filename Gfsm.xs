@@ -16,6 +16,7 @@ BOOT:
  {
    g_mem_set_vtable(&gfsm_perl_vtable);
    //gfsm_allocators_enable();
+   ;
  } 
 
 ##=====================================================================
