@@ -194,7 +194,7 @@ sub trie_add_path_perl {
   $trie->final_weight($qid, $trie->final_weight($qid)+1);
   return $qid;
 }
-sub trie_add_path_c { return $trie_c->add_paths($_[0],[], 1, 1,0,1); }
+sub trie_add_path_c { return $trie_c->add_path($_[0],[], 1, 1,0,1); }
 
 sub trie_dummies {
   gentries;
