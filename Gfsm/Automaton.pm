@@ -363,8 +363,9 @@ sub lookup_viterbi {
 ##======================================================================
 ## Trie: Wrappers & aliases
 ##======================================================================
-*add_path    = \&add_paths;
-*find_prefix = \&find_prefixes;
+#*add_paths    = \&add_path;
+#*find_prefixes = \&find_prefix;
+
 
 1;
 
@@ -544,11 +545,17 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  ## Tries
  $trie = Gfsm::Automaton->newTrie;
 
- $qid = $trie->add_paths(\@lo,\@hi);
- $qid = $trie->add_paths(\@lo,\@hi, $w);
- $qid = $trie->add_paths(\@lo,\@hi, $w, $add_to_arcs, $add_to_state_final, $add_to_path_final);
+ $qid = $trie->add_path(\@lo,\@hi);
+ $qid = $trie->add_path(\@lo,\@hi, $w);
+ $qid = $trie->add_path(\@lo,\@hi, $w, $add_to_arcs, $add_to_state_final, $add_to_path_final);
 
- ($qid,$lo_i,$hi_i,$w_last) = $trie->find_prefixes(\@lo,\@hi);
+ ($qid, $lo_i,$hi_i,$w_last) = $trie->find_prefix(\@lo,\@hi);
+
+ $qids = $trie->add_path_states(\@lo,\@hi);
+ $qids = $trie->add_path_states(\@lo,\@hi, $w);
+ $qids = $trie->add_path_states(\@lo,\@hi, $w, $add_to_arcs, $add_to_state_final, $add_to_path_final);
+
+ ($qids,$lo_i,$hi_i,$w_last) = $trie->find_prefix_states(\@lo,\@hi);
 
  $qid_to = $trie->find_arc_lower($qid_from, $lab_lo);  ##-- target state or Gfsm::noState()
  $qid_to = $trie->find_arc_upper($qid_from, $lab_hi);  ##-- target state or Gfsm::noState()

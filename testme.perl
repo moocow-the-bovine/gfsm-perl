@@ -167,6 +167,50 @@ sub viewtrie {
 }
 
 ##--------------------------------------------------------------
+## Tries: benchmarking
+sub genpaths {
+  eval "use Benchmark;";
+  Benchmark->import(qw(timethese cmpthese));
+  our $nchars  = 32 if (!$nchars);
+  our $pathlen = 8  if (!$pathlen);
+  our $npaths  = 2048 if (!$npaths);
+  our @paths = map {
+    [map { int(rand($nchars))+1 } (0..$pathlen)]
+  } (1..$npaths);
+}
+sub gentries {
+  our $trie_c    = Gfsm::Automaton->newTrie;
+  our $trie_perl = Gfsm::Automaton->newTrie;
+}
+
+sub trie_add_path_perl {
+  my $trie = $trie_perl;
+  my $labs = shift;
+  my $qid = $trie->root;
+  $qid = $trie->root($trie->add_state(0)) if ($qid==$Gfsm::noState);
+  foreach (@$labs) {
+    $qid = $trie->get_arc_lower($qid,$_, 1,1);
+  }
+  $trie->final_weight($qid, $trie->final_weight($qid)+1);
+  return $qid;
+}
+sub trie_add_path_c { return $trie_c->add_paths($_[0],[], 1, 1,0,1); }
+
+sub trie_dummies {
+  gentries;
+  @paths = ([1,2,3],[1,1,1],[1,2,1],[1,2]) if (!@paths);
+  foreach $path (@paths) {
+    trie_add_path_perl($path);
+    trie_add_path_c($path);
+  }
+}
+#trie_dummies;
+
+sub trie_add_all_perl { trie_add_path_perl($_) foreach (@paths); }
+sub trie_add_all_c    { trie_add_path_c($_) foreach (@paths); }
+main_dummy();
+
+##--------------------------------------------------------------
 ## MAIN
 package main;
 sub storetest {
@@ -179,7 +223,10 @@ sub storetest {
 
 
 ##-- dummy
-foreach $i (0..10) {
-  print "--dummy($i)--\n";
+sub main_dummy {
+  foreach $i (0..10) {
+    print "--dummy($i)--\n";
+  }
 }
+main_dummy();
 
