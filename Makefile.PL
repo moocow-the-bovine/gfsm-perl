@@ -7,9 +7,9 @@ if (system("pkg-config --atleast-version=0.0.8 gfsm") != 0) {
   die("Requird module gfsm >= v0.0.8 not found!\n");
 }
 
-$GFSM_IFLAGS=`pkg-config --cflags-only-I gfsm`;
-$GFSM_LDFLAGS=`pkg-config --libs-only-L gfsm`;
-$GFSM_LIBS=`pkg-config --libs-only-l gfsm`;
+$GFSM_IFLAGS = join(' ', map { $s=`pkg-config --cflags-only-I $_`; chomp($s); $s } qw(gfsm glib-2.0));
+$GFSM_LDFLAGS= join(' ', map { $s=`pkg-config --libs-only-L $_`; chomp($s); $s } qw(gfsm glib-2.0));
+$GFSM_LIBS   = join(' ', map { $s=`pkg-config --libs-only-l $_`; chomp($s); $s } qw(gfsm glib-2.0));
 
 ##----------------------------------------------------------------------
 ## MAIN
