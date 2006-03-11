@@ -42,10 +42,24 @@ sub test3 {
 }
 #test3;
 
+BEGIN {
+  sub Dummy::new { return bless {}, 'Dummy'; }
+  sub Dummy::DESTROY { print STDERR "--> Dummy::DESTROY($_[0]) called.\n"; }
+}
 sub test3b {
   our $labs = Gfsm::Alphabet->new;
-  our $labs1 = Gfsm::Alphabet->new;
-  $labs->insert($labs1);
+
+  our ($dummy);
+  print STDERR "main: \$dummy=", ($dummy=Dummy->new), "\n";
+
+  print STDERR "main: \$labs->insert(dummy=$dummy)\n";
+  $labs->insert($dummy,0);
+
+  print STDERR "main: undef(\$dummy)\n";
+  undef $dummy;
+
+  print STDERR "main: \$labs->clear()\n";
+  $labs->clear;
 }
 
 sub test4 {
