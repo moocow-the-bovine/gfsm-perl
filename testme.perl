@@ -2,6 +2,7 @@
 
 use lib qw(./blib/lib ./blib/arch);
 use Gfsm;
+use Storable qw(freeze thaw);
 
 sub perlhash {
   my $key = shift;
@@ -13,13 +14,6 @@ sub perlhash {
   $hash = $hash + ($hash >> 5);
   return $hash;
 }
-
-sub labargh {
-  $labs = Gfsm::Alphabet->new;
-  $lab  = $labs->get_label('a');
-}
-labargh();
-
 
 
 sub loadlabs {
@@ -87,6 +81,13 @@ sub newmany {
   }
 }
 
+sub scalarlabs {
+  $slabs = Gfsm::Alphabet->new;
+  our @id2lab = ({},{a=>1});
+  $slabs->fromArray(\@id2lab);
+  our $slabsf = freeze($slabs);
+  our $slabst = thaw($slabsf);
+}
 
 
 ##--------------------------------------------------------------

@@ -81,9 +81,9 @@ sub toArray {
 ##  + does NOT implicitly clear alphabet
 sub fromArray {
   my ($abet,$ary) = @_;
-  my ($i,$key);
+  my ($i);
   foreach $i (grep { defined($ary->[$_]) } 0..$#$ary) {
-    $abet->insert($key,$i);
+    $abet->insert($ary->[$i],$i);
   }
   return $abet;
 }
