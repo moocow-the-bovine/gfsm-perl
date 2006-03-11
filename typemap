@@ -1,10 +1,11 @@
 # -*- Mode: Perl -*-
 
-gfsmSemiring*	 O_OBJECT
-gfsmAlphabet*	 O_OBJECT
-gfsmAutomaton*   O_OBJECT
-gfsmTrie*        O_OBJECT
-gfsmArcIter*     O_OBJECT
+gfsmSemiring*	  O_OBJECT
+gfsmAlphabet*	  O_OBJECT
+gfsmPerlAlphabet* O_OBJECT
+gfsmAutomaton*    O_OBJECT
+gfsmTrie*         O_OBJECT
+gfsmArcIter*      O_OBJECT
 
 gfsmLabelVector*   T_LABELID_VECTOR
 gfsmStateIdVector* T_STATEID_VECTOR

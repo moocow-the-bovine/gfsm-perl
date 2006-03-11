@@ -3,6 +3,22 @@
 use lib qw(./blib/lib ./blib/arch);
 use Gfsm;
 
+sub perlhash {
+  my $key = shift;
+  my $hash = 0;
+  my ($i);
+  for ($i=0; $i < length($key); $i++) {
+    $hash = ($hash * 33) + ord(substr($key,$i,1));
+  }
+  $hash = $hash + ($hash >> 5);
+  return $hash;
+}
+
+sub labargh {
+  $labs = Gfsm::Alphabet->new;
+  $lab  = $labs->get_label('a');
+}
+labargh();
 
 
 

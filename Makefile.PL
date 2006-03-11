@@ -31,6 +31,12 @@ WriteMakefile
    CCFLAGS      => '',      ##-- additional flags
    OBJECT       => 'Gfsm.o GfsmPerl.o',
 
+   ##-- DEBUG
+   #MAKEAPERL=>1,
+   #LINKTYPE=>'static',
+   #MAP_TARGET=>'gfsmperl',
+   CCFLAGS=>'-g',
+
    ##-- stuff that probably doesn't need to be changed
    #XSOPT        => '-C++',
    TYPEMAPS     => ['perlobject.map', 'typemap'],

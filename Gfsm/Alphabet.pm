@@ -45,7 +45,7 @@ sub save {
 
 ## \%sym2id_hash = $abet->toHash()
 ## \%sym2id_hash = $abet->toHash(\%hash)
-*asHash = \&toHash;
+#*asHash = \&toHash;
 sub toHash {
   my ($abet,$h) = @_;
   $h = {} if (!defined($h));
@@ -69,7 +69,7 @@ sub fromHash {
 
 ## \@id2sym_array = $abet->toArray()
 ## \@id2sym_array = $abet->toArray(\@id2sym_array)
-*asArray = \&toArray;
+#*asArray = \&toArray;
 sub toArray {
   my ($abet,$ary) = @_;
   $ary = [] if (!defined($ary));
@@ -173,16 +173,20 @@ Gfsm::Alphabet - object-oriented interface to libgfsm string alphabets.
 
  ##--------------------------------------------------------------
  ## String utilities
- $labs = $abet->string_to_labels($str,$emit_warnings=1);               # lab-ify by character
- $str  = $abet->labels_to_string($labs,$emit_warnings=1,$att_style=0); # stringify
+ #$labs = $abet->string_to_labels($str,$emit_warnings=1);               # BUGGY: lab-ify by character
+ #$str  = $abet->labels_to_string($labs,$emit_warnings=1,$att_style=0); # BUGGY: stringify
 
  ##--------------------------------------------------------------
  ## Conversion
  $abet      = $abet->fromHash(\%string2id);  # add mappings from \%string2id_hash
  $string2id = $abet->toHash();               # export mappings to hash-ref
+ $string2id = $abet->asHash();               # read-only access to underlying index
 
  $abet      = $abet->fromArray(\@id2string); # add mappings from \@id2string
  $id2string = $abet->toArray();              # export mappings to array-ref
+ $id2string = $abet->asArray();              # read-only access to underlying index
+
+
 
 =head1 DESCRIPTION
 
