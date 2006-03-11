@@ -35,7 +35,8 @@ WriteMakefile
    #MAKEAPERL=>1,
    #LINKTYPE=>'static',
    #MAP_TARGET=>'gfsmperl',
-   CCFLAGS=>'-g',
+   #CCFLAGS=>'-g',
+   ##-- /DEBUG
 
    ##-- stuff that probably doesn't need to be changed
    #XSOPT        => '-C++',
