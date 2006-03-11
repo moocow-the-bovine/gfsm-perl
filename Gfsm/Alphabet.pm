@@ -82,9 +82,8 @@ sub toArray {
 sub fromArray {
   my ($abet,$ary) = @_;
   my ($i,$key);
-  foreach $i (0..$#$ary) {
-    next if (!defined($key=$ary->[$i]));
-    $abet->get_label($key,$i);
+  foreach $i (grep { defined($ary->[$_]) } 0..$#$ary) {
+    $abet->insert($key,$i);
   }
   return $abet;
 }
@@ -96,7 +95,7 @@ sub fromArray {
 sub STORABLE_freeze {
   my ($abet,$cloning) = @_;
   #return $abet->clone if ($cloning); ##-- weirdness
-  return ('',$abet->toHash);
+  return ('',$abet->asArray);
 }
 
 ## $abet = STORABLE_thaw($abet, $cloning, $serialized, $ref1,...)
@@ -115,7 +114,7 @@ sub STORABLE_thaw {
   undef($new);
 
   ##-- now do the actual deed
-  $abet->fromHash($_[3])
+  $abet->fromArray($_[3])
     or croak(ref($abet)."::STORABLE_thaw(): error loading from hashref.\n");
 }
 
