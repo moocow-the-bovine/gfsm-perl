@@ -119,8 +119,8 @@ sub compile {
     return 0;
   }
   my $rc = $fsm->_compile($fh,
-			  ($opts{lower} ? $opts{lower} : $Gfsm::Alphabet::NULL),
-			  ($opts{upper} ? $opts{upper} : $Gfsm::Alphabet::NULL),
+			  ($opts{lower} ? $opts{lower} : ($opts{labels} ? $opts{labels} : $Gfsm::Alphabet::NULL)),
+			  ($opts{upper} ? $opts{upper} : ($opts{labels} ? $opts{labels} : $Gfsm::Alphabet::NULL)),
 			  ($opts{states} ? $opts{states} : $Gfsm::Alphabet::NULL));
   carp(ref($fsm),"::compile(): error compiling file '$file': $Gfsm::Error\n") if (!$rc);
   $fh->close() if (!ref($file));
@@ -140,8 +140,8 @@ sub print_att {
     return 0;
   }
   my $rc = $fsm->_print_att($fh,
-			    ($opts{lower} ? $opts{lower} : $Gfsm::Alphabet::NULL),
-			    ($opts{upper} ? $opts{upper} : $Gfsm::Alphabet::NULL),
+			    ($opts{lower} ? $opts{lower} : ($opts{labels} ? $opts{labels} : $Gfsm::Alphabet::NULL)),
+			    ($opts{upper} ? $opts{upper} : ($opts{labels} ? $opts{labels} : $Gfsm::Alphabet::NULL)),
 			    ($opts{states} ? $opts{states} : $Gfsm::Alphabet::NULL));
   carp(ref($fsm),"::print_att(): error saving text file '$file': $Gfsm::Error\n") if (!$rc);
   $fh->close() if (!ref($file));
@@ -465,10 +465,10 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  $bool = $fsm->load_string($buffer);        # load from in-memory buffer $string
  $bool = $fsm->save_string($buffer);        # save to in-memory buffer $string
 
- $bool = $fsm->compile($filename_or_handle, ?$abet_lo, ?$abet_hi, ?$abet_states);
+ $bool = $fsm->compile($filename_or_handle, %options);
          # compile AT&T-style text format file (transducer format only)
 
- $bool = $fsm->print_att($filename_or_handle, ?$abet_lo, ?$abet_hi, ?$abet_states);
+ $bool = $fsm->print_att($filename_or_handle, %options);
          # save AT&T-style text format file (transducer format only)
 
  $bool = $fsm->compile_string($string, ?$abet_lo, ?$abet_hi, ?$abet_states);
