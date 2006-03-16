@@ -69,9 +69,9 @@ gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 # *  \returns @composition.
 # */
 void
-gfsm_automaton_compose_full(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, gfsmAutomaton *composition)
+gfsm_automaton_compose_full(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, gfsmAutomaton *composition, gboolean restore1, gboolean restore2)
 CODE:
- gfsm_automaton_compose_full(fsm1,fsm2,composition,NULL);
+ gfsm_automaton_compose_full(fsm1,fsm2, composition,NULL, restore1,restore2);
 
 
 #//------------------------------

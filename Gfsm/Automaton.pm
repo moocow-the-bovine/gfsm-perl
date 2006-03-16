@@ -274,9 +274,12 @@ sub n_closure { my $fsm=shift->clone; $fsm->_n_closure(@_); return $fsm;}
 sub complement { my $fsm=shift->clone; $fsm->_complement(@_); return $fsm;}
 sub complete { my $fsm=shift->clone; $fsm->_complete(@_); return $fsm;}
 sub compose_full {
-  my ($fsm1,$fsm2,$fsmout) = @_;
+  my ($fsm1,$fsm2,$fsmout,$restore1,$restore2) = @_;
   $fsmout = $fsm1->shadow() if (!$fsmout);
-  $fsm1->_compose_full($fsm2,$fsmout);
+  $fsm1->_compose_full($fsm2, $fsmout,
+		       (defined($restore1) ? ($restore1 ? 1 : 0) : 1),
+		       (defined($restore2) ? ($restore2 ? 1 : 0) : 1),
+		      );
   return $fsmout;
 }
 sub compose {my $fsm=shift->clone; $fsm->_compose(@_); return $fsm;}
