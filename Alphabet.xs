@@ -178,21 +178,21 @@ CODE:
   SV *hval;
   char *hkey;
   I32  hkeylen, i;
-  fprintf(stderr, "gfsmPerlAlphabet::debug(abet=%p ~ %u)\n", abet, abet);
+  fprintf(stderr, "gfsmPerlAlphabet::debug(abet=%p ~ %u)\n", abet, (unsigned int)abet);
 
-  fprintf(stderr, " + hv=%p, refs=%d\n", abet->hv, SvREFCNT((SV*)abet->hv));
+  fprintf(stderr, " + hv=%p, refs=%u\n", abet->hv, (unsigned int)SvREFCNT((SV*)abet->hv));
   for (hv_iterinit(abet->hv); (hval=hv_iternextsv(abet->hv, &hkey, &hkeylen)); ) {
     fprintf(stderr, "   - '%s' => labsv=%p  labuv=%u  labrefs=%u\n",
-	    hkey, hval, SvUV(hval), SvREFCNT(hval));
+	    hkey, hval, (unsigned int)SvUV(hval), (unsigned int)SvREFCNT(hval));
   }
 
-  fprintf(stderr, " + av=%p , refs=%d\n", abet->av, SvREFCNT((SV*)abet->av));
+  fprintf(stderr, " + av=%p , refs=%u\n", abet->av, (unsigned int)SvREFCNT((SV*)abet->av));
   for (i=0; i <= av_len(abet->av); i++) {
     SV **keysvp = av_fetch(abet->av, i, 0);
-    fprintf(stderr, "   - %u => ", i);
+    fprintf(stderr, "   - %u => ", (unsigned int)i);
     if (keysvp && *keysvp && SvOK(*keysvp)) {
-      fprintf(stderr, "keysv=%p  keypv=(%s)  keyrefs=%d\n",
-	      *keysvp, SvPV_nolen(*keysvp), SvREFCNT(*keysvp));
+      fprintf(stderr, "keysv=%p  keypv=(%s)  keyrefs=%u\n",
+	      *keysvp, SvPV_nolen(*keysvp), (unsigned int)SvREFCNT(*keysvp));
     } else {
       fprintf(stderr, "-undef-\n");
     }
