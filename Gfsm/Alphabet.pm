@@ -9,33 +9,82 @@ use Carp;
 our $NULL = bless \(my $x=0), 'Gfsm::Alphabet';
 
 ##======================================================================
-## I/O: Wrappers
+## I/O: Native
 ##======================================================================
 
-## $bool = $abet->load($filename_or_fh);
+## $bool = $abet->load($filename_or_fh, %args);
+##   + %args
+##   +  separator => $regex,
 sub load {
-  my ($abet,$file) = @_;
+  my ($abet,$file, %args) = @_;
+  my $sep = defined($args{sep}) ? qr/$args{sep}/ : qr/\s+/;
   my $fh = ref($file) ? $file : IO::File->new("<$file");
   if (!$fh) {
     carp(ref($abet),"::load(): could not open file '$file': $!");
     return 0;
   }
-  my $rc = $abet->_load($fh);
-  carp(ref($abet),"::load(): error loading file '$file': $Gfsm::Error\n") if (!$rc);
+
+  my ($line,$sym,$lab);
+  while (defined($line=<$fh>)) {
+    chomp($line);
+    ($sym,$lab) = split($sep, $line);
+    $abet->insert($sym,$lab);
+  }
+
   $fh->close() if (!ref($file));
-  return $rc;
+  return 1;
 }
 
-## $bool = $abet->save($filename_or_fh);
+## $bool = $abet->save($filename_or_fh, %args);
+##   + %args
+##   +  separator => $string,
 sub save {
-  my ($abet,$file) = @_;
+  my ($abet,$file, %args) = @_;
+  my $sep = defined($args{sep}) ? $args{sep} : "\t";
   my $fh = ref($file) ? $file : IO::File->new(">$file");
   if (!$fh) {
     carp(ref($abet),"::save(): could not open file '$file': $!");
     return 0;
   }
+
+  my $ary = $abet->asArray();
+  my ($i);
+  foreach $i (grep { defined($ary->[$_]) } 0..$#$ary) {
+    $fh->print($ary->[$i], $sep, $i, "\n");
+  }
+
+  $fh->close() if (!ref($file));
+  return 1;
+}
+
+##======================================================================
+## I/O: Wrappers
+##======================================================================
+
+## $bool = $abet->load($filename_or_fh);
+sub load_c {
+  my ($abet,$file) = @_;
+  my $fh = ref($file) ? $file : IO::File->new("<$file");
+  if (!$fh) {
+    carp(ref($abet),"::load_c(): could not open file '$file': $!");
+    return 0;
+  }
+  my $rc = $abet->_load($fh);
+  carp(ref($abet),"::load_c(): error loading file '$file': $Gfsm::Error\n") if (!$rc);
+  $fh->close() if (!ref($file));
+  return $rc;
+}
+
+## $bool = $abet->save($filename_or_fh);
+sub save_c {
+  my ($abet,$file) = @_;
+  my $fh = ref($file) ? $file : IO::File->new(">$file");
+  if (!$fh) {
+    carp(ref($abet),"::save_c(): could not open file '$file': $!");
+    return 0;
+  }
   my $rc = $abet->_save($fh);
-  carp(ref($abet),"::save(): error saving file '$file': $Gfsm::Error\n") if (!$rc);
+  carp(ref($abet),"::save_c(): error saving file '$file': $Gfsm::Error\n") if (!$rc);
   $fh->close() if (!ref($file));
   return $rc;
 }
