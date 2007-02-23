@@ -57,6 +57,17 @@ SV *gfsm_perl_alphabet_scalar_read(gfsmPerlAlphabet *alph, GString *gstr);
 //-- string write function for perl scalars
 void gfsm_perl_alphabet_scalar_write(gfsmPerlAlphabet *alph, SV *sv, GString *gstr);
 
+/*--------------------------------------------------------------
+ * gfsmPerlAlphabet: debug
+ */
+#ifdef GFSMDEBUG
+SV *addav(AV *av, int ix, SV *val);
+void rmav(AV *av, int ix);
+SV *addhv(HV *hv, SV *key, SV *val);
+void rmhv(HV *hv, SV *key);
+#endif
+
+
 /*======================================================================
  * I/O: structs
  */

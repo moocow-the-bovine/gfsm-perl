@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wd
+#!/usr/bin/perl -w
 
 use lib qw(./blib/lib ./blib/arch);
 use Gfsm;
@@ -225,7 +225,88 @@ sub trie_dummies {
 
 sub trie_add_all_perl { trie_add_path_perl($_) foreach (@paths); }
 sub trie_add_all_c    { trie_add_path_c($_) foreach (@paths); }
-main_dummy();
+
+
+##--------------------------------------------------------------
+## object alphabets
+package Obj;
+sub new {
+  my ($that,$val) = @_;
+  my $obj = bless \$val, ref($that)||$that;
+  print __PACKAGE__, "::new(val=$val) returning $obj\n";
+  return $obj;
+}
+sub DESTROY {
+  my $obj = shift;
+  print __PACKAGE__, "::DESTROY(obj=$obj,val=$$obj) called.\n";
+}
+package main;
+
+##--------------------------------------------------------------
+## utf8 alphabet woes
+package main;
+use Encode qw(encode decode);
+
+sub utf8abet {
+  our $a = Gfsm::Alphabet->new();
+  our ($lab2sym,$sym2lab) = ($a->asArray,$a->asHash);
+
+  $a->get_label('zero'); ##--> 0
+  $a->get_label('one');  ##--> 1
+
+  our $wlat1 = 'daß';
+  our $wutf8 = decode('latin1',$wlat1);
+
+  our $labu = $a->get_label($wutf8); ##--> 2
+  $a->get_label('three');            ##--> 3
+
+  our $labu2 = $a->find_label($wutf8); ## SHOULD BE 2, is gfsmNoLabel !
+  if ($labu != $labu2) {
+    warn("bad labels $labu/$labu2 for '$wutf8'");
+  }
+}
+#utf8abet();
+
+sub obj_abet {
+  $a = Gfsm::Alphabet->new();
+
+  use vars qw($obj1 $obj2 $obj1s $obj2s);
+  $obj1  = Obj->new('obj1');
+  $obj1s = "$obj1";
+  $obj2  = Obj->new('obj2');
+  $obj2s = "$obj2";
+  $lab1  = $a->insert($obj1);
+  #$lab1b = $b->insert($obj1);
+  undef($obj1);
+
+  #$a->remove_label($lab1); ##-- should decrement $$obj1 reference count!
+
+  $a->insert($obj2, $lab1);
+}
+obj_abet();
+
+sub obj_basic_av {
+  $obj1  = Obj->new('obj1');
+  $a = [];
+  Gfsm::addav($a,0,$obj1);
+  undef($obj1);
+  Gfsm::rmav($a,0);
+  @$a = qw();
+}
+#obj_basic_av();
+
+sub obj_basic_hv {
+  $obj1  = Obj->new('obj1');
+  $obj1s = "$obj1";
+  $h = {};
+  Gfsm::addhv($h,$obj1,$obj1);
+  undef($obj1);
+  Gfsm::rmhv($h,$obj1s);
+  %$h=qw();
+}
+#obj_basic_hv();
+
+
 
 ##--------------------------------------------------------------
 ## MAIN
@@ -241,7 +322,7 @@ sub storetest {
 
 ##-- dummy
 sub main_dummy {
-  foreach $i (0..10) {
+  foreach $i (0..3) {
     print "--dummy($i)--\n";
   }
 }

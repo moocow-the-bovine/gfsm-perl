@@ -4,6 +4,8 @@
 #undef VERSION
 #include <gfsmConfig.h>
 
+/*#define GFSMDEBUG 1*/
+
 /*======================================================================
  * Memory Stuff
  */
@@ -123,78 +125,179 @@ void gfsm_perl_alphabet_free(gfsmPerlAlphabet *alph)
 }
 
 /*--------------------------------------------------------------
- * gfsmPerlAlphabet: user methods
+ * gfsmPerlAlphabet: user methods: lookup
  */
 
-//-- key_lookup: key->label lookup function
+//----------------
+// key_lookup: key->label lookup function
 gfsmLabelVal gfsm_perl_alphabet_key_lookup(gfsmPerlAlphabet *alph, SV* key)
 {
-  STRLEN  keylen = sv_len(key);
-  char   *keypv  = SvPV(key,keylen);
-  SV     **keyval = (SV**)hv_fetch(alph->hv, keypv, keylen, 0);
-
-  //fprintf(stderr, "gfsm_perl_alphabet_key_lookup(keysv=%p, keypv=%s)\n", key, keypv);
-
   gfsmLabelVal lab = gfsmNoLabel;
-  if (keyval && *keyval) {
-    lab = (gfsmLabelVal)SvUV(*keyval);
+  HE *he = hv_fetch_ent(alph->hv, key, 0, 0);
+
+#ifdef GFSMDEBUG
+  fprintf(stderr, "gfsm_perl_alphabet_key_lookup(keysv=%p)\n", key);
+#endif
+
+  if (he) {
+    SV *labsv = HeVAL(he);
+    if (labsv && SvOK(labsv)) { lab = (gfsmLabelVal)SvUV(labsv); }
   }
+
+#ifdef GFSMDEBUG
+  fprintf(stderr, "gfsm_perl_alphabet_key_lookup(keysv=%p) returning %u\n", key, lab);
+#endif
 
   return lab;
 }
 
-//-- lab_lookup: label->key lookup function
+//----------------
+// lab_lookup: label->key lookup function
 SV* gfsm_perl_alphabet_label_lookup(gfsmPerlAlphabet *alph, gfsmLabelVal lab)
 {
   SV **labval = av_fetch(alph->av, (I32)lab, 0);
 
-  //fprintf(stderr, "gfsm_perl_alphabet_label_lookup(lab=%u)\n", lab);
+#ifdef GFSMDEBUG
+  fprintf(stderr, "gfsm_perl_alphabet_label_lookup(lab=%u)\n", lab);
+#endif
 
   if (labval && *labval && SvOK(*labval)) {
     return *labval;
   }
 
+#ifdef GFSMDEBUG
+  fprintf(stderr, "-> gfsm_perl_alphabet_label_lookup(lab=%u) returning NULL\n", lab);
+#endif
+
   return NULL;
 }
 
+/*--------------------------------------------------------------
+ * gfsmPerlAlphabet: user methods: insert/remove
+ */
+
+//----------------
 //-- insert: insertion function
 gfsmLabelVal gfsm_perl_alphabet_insert(gfsmPerlAlphabet *alph, SV *key, gfsmLabelVal lab)
 {
-  SV *labsv;
-  if (lab == gfsmNoLabel) {
-    lab = av_len(alph->av)+1;
-  } else if (av_exists(alph->av, lab)) {
-    gfsm_perl_alphabet_remove(alph,lab);
+  SV *akeysv, *hlabsv;
+
+#ifdef GFSMDEBUG
+  gfsmLabelVal lab0 = lab;
+  fprintf(stderr, "gfsm_perl_alphabet_insert(key=%p, lab=%u)\n", key, lab);
+#endif
+
+  if (lab == gfsmNoLabel) { lab = av_len(alph->av)+1; }
+
+  //-- remove conflicting entries: key
+  if ( hv_exists_ent(alph->hv, key, 0) ) {
+    HE *he = hv_fetch_ent(alph->hv, key, 0, 0);
+    hlabsv = HeVAL(he);
+    av_delete(alph->av, (I32)SvUV(hlabsv), G_DISCARD);
+  }
+  //-- remove conflicting entries: label
+  if ( av_exists(alph->av, (I32)lab) ) {
+    gfsm_perl_alphabet_remove(alph, lab);
   }
 
-  //fprintf(stderr, "gfsm_perl_alphabet_insert(key=%p, lab=%u)\n", key, lab);
+  //-- copy the key before inserting (otherwise strangeness ensues)
+  akeysv = sv_mortalcopy(key);     //-- array element: key
+  SvREFCNT_inc(akeysv);            //   : mortal needs incremented refcount
 
-  av_store(alph->av, lab, newSVsv(key));
-  labsv = newSVuv((UV)lab);
-  hv_store_ent(alph->hv, key, labsv, 0);
+  hlabsv = sv_newmortal();         //-- hash element
+  sv_setuv(hlabsv,lab);            //   : label
+  SvREFCNT_inc(hlabsv);            //   : mortal needs incremented refcount
+
+  //-- store: hash
+  if ( hv_store_ent(alph->hv, key, hlabsv, 0)==NULL ) {
+    SvREFCNT_dec(hlabsv);
+  }
+
+  //-- store: array
+  if ( av_store(alph->av, lab, akeysv)==NULL ) {
+    SvREFCNT_dec(akeysv);
+  }
+
+#ifdef GFSMDEBUG
+  fprintf(stderr, "gfsm_perl_alphabet_insert(key=%p, lab=%u): storing lab=%u\n", key, lab0, lab);
+#endif
 
   return lab;
 }
 
+//----------------
 //-- lab_remove: label removal function
 void gfsm_perl_alphabet_remove(gfsmPerlAlphabet *alph, gfsmLabelVal lab)
 {
   SV *keysv = gfsm_perl_alphabet_label_lookup(alph,lab);
-  //fprintf(stderr, "gfsm_perl_alphabet_remove(lab=%u): keysv=%p\n", lab, keysv);
-  if (keysv) {
-    //-- actual deletion
+
+#ifdef GFSMDEBUG
+  fprintf(stderr, "gfsm_perl_alphabet_remove(lab=%u): keysv=%p\n", lab, keysv);
+#endif
+
+  //-- remove: hash
+  if (keysv && SvOK(keysv)) {
     hv_delete_ent(alph->hv, keysv, G_DISCARD, 0);
-    av_delete(alph->av, (I32)lab, G_DISCARD);
+  } else {
+    warn("gfsm_perl_alphabet_remove(): bad keysv!");
   }
+
+  //-- remove: array
+  av_delete(alph->av, (I32)lab, G_DISCARD);
+
+#ifdef GFSMDEBUG
+  fprintf(stderr, "gfsm_perl_alphabet_remove(lab=%u,keysv=%p): done.\n", lab, keysv);
+#endif
+
 }
 
+/*--------------------------------------------------------------
+ * gfsmPerlAlphabet: DEBUG
+ */
+#ifdef GFSMDEBUG
+SV *addav(AV *av, int ix, SV *val)
+{
+  SV *RETVAL = newSVsv(val);
+  SvREFCNT_inc(RETVAL);
+  if (av_store(av,ix,RETVAL)==NULL) {
+    SvREFCNT_dec(RETVAL);
+  }
+  return RETVAL;
+}
+void rmav(AV *av, int ix)
+{
+  av_delete(av,ix,G_DISCARD);
+}
 
+SV *addhv(HV *hv, SV *key, SV *val)
+{
+  SV *RETVAL = newSVsv(val);
+  SvREFCNT_inc(RETVAL);
+  if ( hv_store_ent(hv, key, RETVAL, 0)==NULL ) {
+    SvREFCNT_dec(RETVAL);
+  }
+  return RETVAL;
+}
+
+void rmhv(HV *hv, SV *key)
+{
+  hv_delete_ent(hv,key,G_DISCARD,0);
+}
+#endif
+
+
+/*--------------------------------------------------------------
+ * gfsmPerlAlphabet: user methods: string I/O
+ */
+
+//----------------
 //-- string read function for perl scalars
 SV *gfsm_perl_alphabet_scalar_read(gfsmPerlAlphabet *alph, GString *gstr)
 {
   return newSVpv(gstr->str, gstr->len);
 }
 
+//----------------
 //-- string write function for perl scalars
 void gfsm_perl_alphabet_scalar_write(gfsmPerlAlphabet *alph, SV *sv, GString *gstr)
 {
