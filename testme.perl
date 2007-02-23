@@ -265,7 +265,7 @@ sub utf8abet {
     warn("bad labels $labu/$labu2 for '$wutf8'");
   }
 }
-#utf8abet();
+utf8abet();
 
 sub obj_abet {
   $a = Gfsm::Alphabet->new();
@@ -283,7 +283,7 @@ sub obj_abet {
 
   $a->insert($obj2, $lab1);
 }
-obj_abet();
+#obj_abet();
 
 sub obj_basic_av {
   $obj1  = Obj->new('obj1');
