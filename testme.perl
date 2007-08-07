@@ -115,14 +115,24 @@ sub compose2 {
   $fsm2->_compose_prepare_fsm2();   # prepare fsm2 for composition
 
   ##-- Phase 2: filter FSM1: fsm1f = compose(fsm1,filter)
-  $filter->arcsort(Gfsm::ASMLower());
+  $filter->arcsort($Gfsm::ASMLower);
   my $fsm1f = $fsm1->shadow;
   $fsm1->_compose_guts($filter, $fsm1f);
+  ##
+  ##-- Phase 2 (alt): filter FSM2: fsm2f = compose(filter,fsm2)
+  my $fsm2f = $fsm2->shadow;
+  $filter->arcsort($Gfsm::ASMUpper);
+  $filter->_compose_guts($fsm2, $fsm2f);
 
   ##-- Phase 3: compose filtered fsm1 with fsm2: fsm3 = compose(fsm1f,fsm2)
-  $fsm1f->arcsort(Gfsm::ASMUpper());
   my $fsm3 = $fsm1f->shadow;
+  $fsm1f->arcsort($Gfsm::ASMUpper);
   $fsm1f->_compose_guts($fsm2, $fsm3);
+  ##
+  ##-- Phase 3 (alt): compose fsm1 with filtered fsm2: fsm3 = compose(fsm1,fsm2f)
+  my $fsm3alt = $fsm2f->shadow;
+  $fsm2f->arcsort($Gfsm::ASMLower);
+  $fsm1->_compose_guts($fsm2f, $fsm3alt);
 
   ##-- Final: restore original input fsms
   my $sm      = Gfsm::ASMNone;
