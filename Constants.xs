@@ -28,6 +28,20 @@ epsilon()
    RETVAL
 
 gfsmLabelId
+epsilon1()
+ CODE:
+   RETVAL=gfsmEpsilon1;
+ OUTPUT:
+   RETVAL
+
+gfsmLabelId
+epsilon2()
+ CODE:
+   RETVAL=gfsmEpsilon2;
+ OUTPUT:
+   RETVAL
+
+gfsmLabelId
 noLabel()
  CODE:
    RETVAL=gfsmNoLabel;

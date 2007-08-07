@@ -16,8 +16,11 @@ Gfsm::constants - constants defined in the Gfsm module.
  ##------------------------------------------------------------
  ## Arc Labels
  use Gfsm qw(:labels);
- $lab = $Gfsm::epsilon = Gfsm::epsilon();
- $lab = $Gfsm::noLabel = Gfsm::noLabel();
+ $lab = $Gfsm::epsilon  = Gfsm::epsilon();
+ $lab = $Gfsm::noLabel  = Gfsm::noLabel();
+
+ $lab = $Gfsm::epsilon1 = Gfsm::epsilon1(); # for low-level composition
+ $lab = $Gfsm::epsilon2 = Gfsm::epsilon2(); # for low-level composition
 
  ##------------------------------------------------------------
  ## State IDs

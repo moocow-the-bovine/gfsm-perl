@@ -9,7 +9,7 @@ use Exporter;
 
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.0208';
+our $VERSION = '0.0209';
 
 require XSLoader;
 XSLoader::load('Gfsm', $VERSION);
@@ -32,9 +32,11 @@ our %EXPORT_TAGS = qw();
 
 ##------------------------------------------------------------
 ## Constants: arc labels
-our $epsilon = epsilon();
-our $noLabel = noLabel();
-$EXPORT_TAGS{labels} = [qw(epsilon $epsilon noLabel $noLabel)];
+our $epsilon  = epsilon();
+our $epsilon1 = epsilon1();
+our $epsilon2 = epsilon2();
+our $noLabel  = noLabel();
+$EXPORT_TAGS{labels} = [qw(epsilon $epsilon $epsilon1 $epsilon2 noLabel $noLabel)];
 
 ##------------------------------------------------------------
 ## Constants: State IDs

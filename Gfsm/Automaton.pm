@@ -8,7 +8,7 @@ use Carp;
 ## Constants
 ##======================================================================
 our $NULL = bless \(my $x=0), 'Gfsm::Automaton';
-our $GV   = 'gv';
+our $GV   = 'gv -spartan';
 our $DOT  = 'dot';
 
 ##======================================================================
@@ -369,6 +369,29 @@ sub lookup_viterbi {
 #*add_paths    = \&add_path;
 #*find_prefixes = \&find_prefix;
 
+##======================================================================
+## Composition: low-level
+##======================================================================
+
+## $abet = $fsm->alphabet($which)
+## $abet = $fsm->alphabet($which,$abet)
+sub alphabet {
+  my ($fsm,$which,$abet) = @_;
+  $abet = Gfsm::Alphabet->new() if (!defined($abet));
+  my $ai = Gfsm::ArcIter->new();
+  my ($qid);
+  foreach $qid (0..($fsm->n_states-1)) {
+    for ($ai->open($fsm,$qid); $ai->ok; $ai->next) {
+      if    ($which == $Gfsm::LSLower) { $abet->insert(''.$ai->lower,$ai->lower); }
+      elsif ($which == $Gfsm::LSUpper) { $abet->insert(''.$ai->upper,$ai->upper); }
+      else { #if ($which == $Gfsm::LSBoth)
+	$abet->insert(''.$ai->lower,$ai->lower);
+	$abet->insert(''.$ai->upper,$ai->upper);
+      }
+    }
+  }
+  return $abet;
+}
 
 1;
 
@@ -529,6 +552,31 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
 
  $fsm->_closure();                # destructive closure
  #... etc.
+
+ ##--------------------------------------------------------------
+ ## Composition (low-level)
+
+ $fsm = $fsm1->compose_full($fsm2,$restore1,$restore2);    # mid-level composition
+
+ ##-- Phase 0: prepare composition filter
+ $abet   = $fsm1->alphabet(Gfsm::LSUpper());                # get shared alphabet
+ $filter = $abet->composition_filter($fsm1->semiring_type); # create composition filter
+
+ ##-- Phase 1: tweak epsilon arcs in shared alphabet
+ $fsm1->_compose_prepare_fsm1();   # prepare fsm1 for composition
+ $fsm2->_compose_prepare_fsm2();   # prepare fsm2 for composition
+
+ ##-- Phase 2: filter FSM1: fsm1f = compose(fsm1,filter)
+ $filter->arcsort(Gfsm::ASMLower());
+ $fsm1->_compose_guts($filter, $fsm1f=$fsm1->shadow);
+
+ ##-- Phase 3: compose filtered fsm1 with fsm2: fsm3 = compose(fsm1f,fsm2)
+ $fsm1f->arcsort(Gfsm::ASMUpper());
+ $fsm1f->_compose_guts($fsm2, $fsm3=$fsm1f->shadow);
+
+ ##-- Final: restore original input fsms
+ $fsm1->_compose_restore($fsm2, $sm1,$sm2, $restore1,$restore2);
+
 
  ##--------------------------------------------------------------
  ## Lookup

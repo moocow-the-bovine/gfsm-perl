@@ -66,12 +66,54 @@ gfsm_automaton_compose(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 
 #/** Compute the composition of two transducers @fsm1 and @fsm2 
 # *  into the transducer @composition.
-# *  \returns @composition.
+# *  \param fsm1 Lower-middle transducer
+# *  \param fsm2 Middle-upper transducer
+# *  \param restore1
+# *    Both \fsm1 and \fsm2 are destructively altered in the course of computation.
+# *    If \a restorefsm1 is true, the changes made to \a fsm1 will be eliminated
+# *    before the call returns.
+# *  \param restore2
+# *    If true, changes to \a fsm2 will be changed back before the call returns.
+# *
+# *  \seealso Mohri, Pereira, and Riley (1996) "Weighted Automata in Text and Speech Processing",
+# *    ECAI '96, John Wiley & Sons, Ltd.
+# *
+# *  \returns composition automaton
 # */
 void
 gfsm_automaton_compose_full(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, gfsmAutomaton *composition, gboolean restore1, gboolean restore2)
 CODE:
  gfsm_automaton_compose_full(fsm1,fsm2, composition,NULL, restore1,restore2);
+
+#//--------
+#// Low-level composition wrappers
+
+#//-- compose_prepare_fsm1()
+void
+gfsm_automaton_compose_prepare_fsm1(gfsmAutomaton *fsm1)
+CODE:
+ gfsm_automaton_compose_prepare_fsm1(fsm1,NULL);
+
+#//-- compose_prepare_fsm2()
+void
+gfsm_automaton_compose_prepare_fsm2(gfsmAutomaton *fsm2)
+CODE:
+ gfsm_automaton_compose_prepare_fsm2(fsm2,NULL);
+
+#//-- TODO: automaton_alphabet(gfsmAutomaton *fsm, gfsmLabelSide which)
+
+#//-- composition_filter() [see Alphabet.xs]
+
+#//-- compose_restore()
+void
+gfsm_automaton_compose_restore(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, gfsmArcSortMode fsm1sm, gfsmArcSortMode fsm2sm, gboolean restore1, gboolean restore2)
+
+#//-- compose_intersect_wrapper
+void
+gfsm_automaton_compose_guts(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, gfsmAutomaton *fsm_out)
+CODE:
+ _gfsm_automaton_compose_intersect_wrapper(fsm1,fsm2,fsm_out,NULL,1);
+
 
 
 #//------------------------------

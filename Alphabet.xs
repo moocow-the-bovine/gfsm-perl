@@ -231,6 +231,20 @@ OUTPUT:
  RETVAL
 
 ##--------------------------------------------------------------
+## Automaton Utilities
+
+gfsmAutomaton *
+composition_filter(gfsmAlphabet *abet, gfsmSRType srtype)
+PREINIT:
+ char *CLASS = "Gfsm::Automaton";
+CODE:
+ RETVAL = gfsm_automaton_composition_filter(abet, srtype);
+OUTPUT:
+ RETVAL
+
+
+
+##--------------------------------------------------------------
 ## String Utilities
 
 ##-- BUGGY

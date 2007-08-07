@@ -89,6 +89,71 @@ sub scalarlabs {
   our $slabst = thaw($slabsf);
 }
 
+##--------------------------------------------------------------
+## test: compose
+
+sub compose1 {
+  my ($fsm1,$fsm2) = @_;
+  my $fsm3 = $fsm1->compose($fsm2);
+  return $fsm3;
+}
+sub compose2 {
+  my ($fsm1,$fsm2) = @_;
+
+  ##-- Phase 0: prepare composition filter
+  my $abet   = $fsm1->alphabet(Gfsm::LSUpper());                # get shared alphabet
+  my $filter = $abet->composition_filter($fsm1->semiring_type); # create composition filter
+
+  ##-- hack for viewps: make human-readable labs
+  our $labs = Storable::dclone($abet);
+  $labs->insert('eps',  Gfsm::epsilon);
+  $labs->insert('eps1', Gfsm::epsilon1);
+  $labs->insert('eps2', Gfsm::epsilon2);
+
+  ##-- Phase 1: tweak epsilon arcs in shared alphabet
+  $fsm1->_compose_prepare_fsm1();   # prepare fsm1 for composition
+  $fsm2->_compose_prepare_fsm2();   # prepare fsm2 for composition
+
+  ##-- Phase 2: filter FSM1: fsm1f = compose(fsm1,filter)
+  $filter->arcsort(Gfsm::ASMLower());
+  my $fsm1f = $fsm1->shadow;
+  $fsm1->_compose_guts($filter, $fsm1f);
+
+  ##-- Phase 3: compose filtered fsm1 with fsm2: fsm3 = compose(fsm1f,fsm2)
+  $fsm1f->arcsort(Gfsm::ASMUpper());
+  my $fsm3 = $fsm1f->shadow;
+  $fsm1f->_compose_guts($fsm2, $fsm3);
+
+  ##-- Final: restore original input fsms
+  my $sm      = Gfsm::ASMNone;
+  my $restore = 1;
+  $fsm1->_compose_restore($fsm2, $sm,$sm, $restore,$restore);
+
+  return $fsm3;
+}
+
+##-- test
+sub test_compose {
+  our $fsm1 = Gfsm::Automaton->new();
+  $fsm1->root(0);
+  $fsm1->add_arc(0,1, 1, 1,  0);
+  $fsm1->add_arc(0,1, 2, 2,  0);
+  $fsm1->add_arc(1,1, 10,0, 0);
+  $fsm1->final_weight(1,0);
+
+  our $fsm2 = Gfsm::Automaton->new();
+  $fsm2->root(0);
+  $fsm2->add_arc(0,0, 1, 2, 0);
+  $fsm2->add_arc(0,0, 2, 3, 0);
+  $fsm2->add_arc(0,0, 0,20, 0);
+  $fsm2->final_weight(0,0);
+
+  our $c1 = compose1($fsm1,$fsm2);
+  our $c2 = compose2($fsm1,$fsm2);
+
+  print "test_compose: done.\n";
+}
+test_compose;
 
 ##--------------------------------------------------------------
 ## I/O: Wrappers: Binary: Storable
