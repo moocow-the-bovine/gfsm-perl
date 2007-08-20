@@ -21,6 +21,18 @@ OUTPUT:
  RETVAL
 
 ##--------------------------------------------------------------
+## Constructor: clone() (full copy)
+gfsmArcIter *
+clone(gfsmArcIter *ai)
+PREINIT:
+ char *CLASS=HvNAME(SvSTASH(SvRV(ST(0))));  // needed by typemap
+CODE:
+ RETVAL = gfsm_arciter_clone(ai);
+OUTPUT:
+ RETVAL
+
+
+##--------------------------------------------------------------
 ## Destructor: DESTROY()
 void
 DESTROY(gfsmArcIter *ai)
