@@ -475,7 +475,7 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  $stateid = $ai->target(?$stateid);       # get/set current arc target StateId
  $lab     = $ai->lower(?$lab);            # get/set current arc lower label
  $lab     = $ai->upper(?$lab);            # get/set current arc upper label
- $lab     = $ai->weight(?$lab);           # get/set current arc weight
+ $weight  = $ai->weight(?$weight);        # get/set current arc weight
 
  $ai->next();                             # increment to next outgoing arc
  $ai->seek_lower($lab);                   # (inclusive) seek next arc with lower label $lab
