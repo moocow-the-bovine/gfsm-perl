@@ -23,9 +23,21 @@ OUTPUT:
 
 ##--------------------------------------------------------------
 ## Methods: add path
+
+##gfsm_trie_add_path(gfsmTrie *trie, gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w={0}, gboolean add_to_arcs=TRUE, gboolean add_to_state_final=FALSE, gboolean add_to_path_final=TRUE)
+
 gfsmStateId
-gfsm_trie_add_path(gfsmTrie *trie, gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w=0, gboolean add_to_arcs=TRUE, gboolean add_to_state_final=FALSE, gboolean add_to_path_final=TRUE)
+gfsm_trie_add_path(gfsmTrie *trie, gfsmLabelVector *lo, gfsmLabelVector *hi, ...)
+PREINIT:
+ gfsmWeight w;
+ gboolean add_to_arcs = TRUE;
+ gboolean add_to_state_final = FALSE;
+ gboolean add_to_path_final = TRUE;
 CODE:
+ if (items >= 4) { w.f = (gfsmWeightVal)SvNV(ST(3)); } else { w.f=0; }
+ if (items >= 5) { add_to_arcs = SvIV(ST(4)); }
+ if (items >= 6) { add_to_state_final = SvIV(ST(5)); }
+ if (items >= 6) { add_to_path_final = SvIV(ST(6)); }
  RETVAL = gfsm_trie_add_path_full(trie, lo, hi, w, add_to_arcs, add_to_state_final, add_to_path_final, NULL);
 OUTPUT:
  RETVAL
@@ -35,9 +47,21 @@ CLEANUP:
 
 ##--------------------------------------------------------------
 ## Methods: add path (+states)
+
+#gfsm_trie_add_path_states(gfsmTrie *trie, gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w={0}, gboolean add_to_arcs=TRUE, gboolean add_to_state_final=FALSE, gboolean add_to_path_final=TRUE
+
 gfsmStateIdVector*
-gfsm_trie_add_path_states(gfsmTrie *trie, gfsmLabelVector *lo, gfsmLabelVector *hi, gfsmWeight w=0, gboolean add_to_arcs=TRUE, gboolean add_to_state_final=FALSE, gboolean add_to_path_final=TRUE)
+gfsm_trie_add_path_states(gfsmTrie *trie, gfsmLabelVector *lo, gfsmLabelVector *hi, ...)
+PREINIT:
+ gfsmWeight w;
+ gboolean add_to_arcs = TRUE;
+ gboolean add_to_state_final = FALSE;
+ gboolean add_to_path_final = TRUE;
 CODE:
+ if (items >= 4) { w.f = (gfsmWeightVal)SvNV(ST(3)); } else { w.f=0; }
+ if (items >= 5) { add_to_arcs = SvIV(ST(4)); }
+ if (items >= 6) { add_to_state_final = SvIV(ST(5)); }
+ if (items >= 6) { add_to_path_final = SvIV(ST(6)); }
  RETVAL = g_ptr_array_sized_new(lo->len + hi->len);
  gfsm_trie_add_path_full(trie, lo, hi, w, add_to_arcs, add_to_state_final, add_to_path_final, RETVAL);
 OUTPUT:
@@ -70,7 +94,7 @@ PPCODE:
     nitems = 4;
     ST(1) = newSVuv(lo_i);
     ST(2) = newSVuv(hi_i);
-    ST(3) = newSVnv(w_last);
+    ST(3) = newSVnv(w_last.f);
     sv_2mortal(ST(1));
     sv_2mortal(ST(2));
     sv_2mortal(ST(3));
@@ -109,7 +133,7 @@ PPCODE:
     nitems = 4;
     ST(1) = newSVuv(lo_i);
     ST(2) = newSVuv(hi_i);
-    ST(3) = newSVnv(w_last);
+    ST(3) = newSVnv(w_last.f);
     sv_2mortal(ST(1));
     sv_2mortal(ST(2));
     sv_2mortal(ST(3));

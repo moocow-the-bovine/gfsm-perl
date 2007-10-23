@@ -18,7 +18,8 @@ gfsmLabelVal     T_UINT
 gfsmStateId      T_UINT
 
 gfsmSRType       T_UINT
-gfsmWeight       T_FLOAT
+#gfsmWeight       T_FLOAT
+gfsmWeight       T_GFSM_WEIGHT
 
 gfsmArcSortMode  T_UINT
 gfsmLabelSide    T_UINT
@@ -48,6 +49,11 @@ T_FLOAT
       $var = SvNV($arg);
   }
 
+T_GFSM_WEIGHT
+  {
+      $var.f = SvNV($arg);
+  }
+
 T_LABELID_VECTOR
   {
       //-------------------------- BEGIN T_LABELID_VECTOR perl->C
@@ -65,9 +71,9 @@ T_LABELID_VECTOR
       for (_i=0; _i <= av_len(av); _i++) {
 	  SV **sv = av_fetch(av,_i,0);
 	  if (sv && *sv) {
-	      g_ptr_array_add($var, (gpointer)(SvUV(*sv)));
+	      g_ptr_array_add($var, GUINT_TO_POINTER(SvUV(*sv)));
 	  } else {
-	      g_ptr_array_add($var, ((gpointer)((int)gfsmNoLabel)));
+	      g_ptr_array_add($var, GUINT_TO_POINTER((guint)gfsmNoLabel));
 	  }
       }
       //-------------------------- END T_LABELID_VECTOR perl->C
@@ -90,9 +96,9 @@ T_STATEID_VECTOR
       for (_i=0; _i <= av_len(av); _i++) {
 	  SV **sv = av_fetch(av,_i,0);
 	  if (sv && *sv) {
-	      g_ptr_array_add($var, (gpointer)(SvUV(*sv)));
+	      g_ptr_array_add($var, GUINT_TO_POINTER(SvUV(*sv)));
 	  } else {
-	      g_ptr_array_add($var, ((gpointer)(gfsmNoState)));
+	      g_ptr_array_add($var, GUINT_TO_POINTER(gfsmNoState));
 	  }
       }
       //-------------------------- END T_STATEID_VECTOR perl->C
@@ -121,6 +127,11 @@ T_FLOAT
       sv_setnv($arg,$var);
   }
 
+T_GFSM_WEIGHT
+  {
+      sv_setnv($arg,$var.f);
+  }
+
 T_LABELID_VECTOR
   {
       //-------------------------- BEGIN T_LABELID_VECTOR C->perl
@@ -128,7 +139,7 @@ T_LABELID_VECTOR
       AV *av = newAV();
       if ($var) {
 	  for (_i=0; _i < $var->len; _i++) {
-	      av_push(av, newSVuv((UV)g_ptr_array_index($var,_i)));
+	      av_push(av, newSVuv((UV)GPOINTER_TO_UINT(g_ptr_array_index($var,_i))));
 	  }
       }
       sv_2mortal((SV*)av);
@@ -144,7 +155,7 @@ T_STATEID_VECTOR
       AV *av = newAV();
       if ($var) {
 	  for (_i=0; _i < $var->len; _i++) {
-	      av_push(av, newSVuv((UV)g_ptr_array_index($var,_i)));
+	      av_push(av, newSVuv((UV)GPOINTER_TO_UINT(g_ptr_array_index($var,_i))));
 	  }
       }
       sv_2mortal((SV*)av);

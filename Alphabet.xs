@@ -178,7 +178,7 @@ CODE:
   SV *hval;
   char *hkey;
   I32  hkeylen, i;
-  fprintf(stderr, "gfsmPerlAlphabet::debug(abet=%p ~ %u)\n", abet, (unsigned int)abet);
+  fprintf(stderr, "gfsmPerlAlphabet::debug(abet=%p ~ %u)\n", abet, GPOINTER_TO_UINT(abet));
 
   fprintf(stderr, " + hv=%p, refs=%u\n", abet->hv, (unsigned int)SvREFCNT((SV*)abet->hv));
   for (hv_iterinit(abet->hv); (hval=hv_iternextsv(abet->hv, &hkey, &hkeylen)); ) {

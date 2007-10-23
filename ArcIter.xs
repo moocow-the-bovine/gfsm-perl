@@ -117,10 +117,10 @@ PREINIT:
  gfsmArc *a=NULL;
 CODE:
  if ( (a=gfsm_arciter_arc(aip)) ) {
-   if (items > 1) { a->weight = (gfsmWeight)SvNV(ST(1)); }
+   if (items > 1) { a->weight.f = (gfloat)SvNV(ST(1)); }
    RETVAL = a->weight;
  } else {
-   RETVAL = 0; /* HACK */
+   RETVAL.f = 0; /* HACK */
  }
 OUTPUT:
  RETVAL

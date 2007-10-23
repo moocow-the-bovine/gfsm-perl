@@ -22,7 +22,7 @@ OUTPUT:
 ## Copy constructor
 gfsmSemiring*
 copy(gfsmSemiring* sr)
-INIT:
+PREINIT:
    char *CLASS=HvNAME(SvSTASH(SvRV(ST(0))));  // needed by typemap
 CODE:
  RETVAL=gfsm_semiring_copy(sr);
@@ -119,3 +119,7 @@ OUTPUT:
 ## Utilities
 gfsmWeight
 gfsm_log_add(gfsmWeight x, gfsmWeight y)
+CODE: 
+ RETVAL.f=gfsm_log_add(x.f,y.f);
+OUTPUT:
+ RETVAL

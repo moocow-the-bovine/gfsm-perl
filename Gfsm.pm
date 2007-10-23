@@ -9,7 +9,7 @@ use Exporter;
 
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.0210';
+our $VERSION = '0.0211';
 
 require XSLoader;
 XSLoader::load('Gfsm', $VERSION);
