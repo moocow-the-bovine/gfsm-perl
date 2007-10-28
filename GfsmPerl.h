@@ -19,6 +19,18 @@ HV *gfsm_perl_path_to_hv(gfsmPath *path);
 AV *gfsm_perl_ptr_array_to_av_uv(GPtrArray *ary);
 
 /*======================================================================
+ * Weight stuff
+ */
+#ifdef GFSM_WEIGHT_IS_UNION
+#define gfsm_perl_weight_setfloat(w,f) ((w).f=(f))
+#define gfsm_perl_weight_getfloat(w)   ((w).f)
+#else
+typedef gfloat gfsmWeightVal;
+#define gfsm_perl_weight_setfloat(w,f) ((w)=(f))
+#define gfsm_perl_weight_getfloat(w)   (w)
+#endif /* GFSM_WEIGHT_IS_UNION */
+
+/*======================================================================
  * gfsmPerlAlphabet: alphabet of scalars
  */
 

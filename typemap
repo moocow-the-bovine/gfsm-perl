@@ -18,7 +18,9 @@ gfsmLabelVal     T_UINT
 gfsmStateId      T_UINT
 
 gfsmSRType       T_UINT
+
 #gfsmWeight       T_FLOAT
+gfsmWeightVal    T_FLOAT
 gfsmWeight       T_GFSM_WEIGHT
 
 gfsmArcSortMode  T_UINT
@@ -51,7 +53,7 @@ T_FLOAT
 
 T_GFSM_WEIGHT
   {
-      $var.f = SvNV($arg);
+      gfsm_perl_weight_setfloat($var,SvNV($arg));
   }
 
 T_LABELID_VECTOR
@@ -129,7 +131,7 @@ T_FLOAT
 
 T_GFSM_WEIGHT
   {
-      sv_setnv($arg,$var.f);
+      sv_setnv($arg, gfsm_perl_weight_getfloat($var));
   }
 
 T_LABELID_VECTOR

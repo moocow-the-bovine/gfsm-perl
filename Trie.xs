@@ -34,7 +34,8 @@ PREINIT:
  gboolean add_to_state_final = FALSE;
  gboolean add_to_path_final = TRUE;
 CODE:
- if (items >= 4) { w.f = (gfsmWeightVal)SvNV(ST(3)); } else { w.f=0; }
+ if (items >= 4) { gfsm_perl_weight_setfloat(w, (gfsmWeightVal)SvNV(ST(3))); }
+ else            { gfsm_perl_weight_setfloat(w, 0); }
  if (items >= 5) { add_to_arcs = SvIV(ST(4)); }
  if (items >= 6) { add_to_state_final = SvIV(ST(5)); }
  if (items >= 6) { add_to_path_final = SvIV(ST(6)); }
@@ -58,7 +59,8 @@ PREINIT:
  gboolean add_to_state_final = FALSE;
  gboolean add_to_path_final = TRUE;
 CODE:
- if (items >= 4) { w.f = (gfsmWeightVal)SvNV(ST(3)); } else { w.f=0; }
+ if (items >= 4) { gfsm_perl_weight_setfloat(w, (gfsmWeightVal)SvNV(ST(3))); }
+ else            { gfsm_perl_weight_setfloat(w, 0); }
  if (items >= 5) { add_to_arcs = SvIV(ST(4)); }
  if (items >= 6) { add_to_state_final = SvIV(ST(5)); }
  if (items >= 6) { add_to_path_final = SvIV(ST(6)); }
@@ -94,7 +96,7 @@ PPCODE:
     nitems = 4;
     ST(1) = newSVuv(lo_i);
     ST(2) = newSVuv(hi_i);
-    ST(3) = newSVnv(w_last.f);
+    ST(3) = newSVnv(gfsm_perl_weight_getfloat(w_last));
     sv_2mortal(ST(1));
     sv_2mortal(ST(2));
     sv_2mortal(ST(3));
@@ -133,7 +135,7 @@ PPCODE:
     nitems = 4;
     ST(1) = newSVuv(lo_i);
     ST(2) = newSVuv(hi_i);
-    ST(3) = newSVnv(w_last.f);
+    ST(3) = newSVnv(gfsm_perl_weight_getfloat(w_last));
     sv_2mortal(ST(1));
     sv_2mortal(ST(2));
     sv_2mortal(ST(3));

@@ -117,9 +117,9 @@ OUTPUT:
 
 ##--------------------------------------------------------------
 ## Utilities
-gfsmWeight
-gfsm_log_add(gfsmWeight x, gfsmWeight y)
+gfsmWeightVal
+gfsm_log_add(gfsmWeightVal x, gfsmWeightVal y)
 CODE: 
- RETVAL.f=gfsm_log_add(x.f,y.f);
+ RETVAL=gfsm_log_add(x,y);
 OUTPUT:
  RETVAL

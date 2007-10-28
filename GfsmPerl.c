@@ -66,7 +66,7 @@ HV *gfsm_perl_path_to_hv(gfsmPath *path)
 
   hv_store(hv, "lo", 2, newRV((SV*)lo), 0);
   hv_store(hv, "hi", 2, newRV((SV*)hi), 0);
-  hv_store(hv, "w",  1, newSVnv(path->w.f), 0);
+  hv_store(hv, "w",  1, newSVnv(gfsm_perl_weight_getfloat(path->w)), 0);
 
   sv_2mortal((SV*)hv);
   return hv;

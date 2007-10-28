@@ -190,8 +190,8 @@ gfsmWeight
 final_weight(gfsmAutomaton *fsm, gfsmStateId id, ...)
 CODE:
  if (items > 2) {
-   gfsmWeightU w;
-   w.f = (gfsmWeightVal)SvNV(ST(2));
+   gfsmWeight w;
+   gfsm_perl_weight_setfloat(w, (gfsmWeightVal)SvNV(ST(2)));
    gfsm_automaton_set_final_state_full(fsm, id, TRUE, w);
  }
  RETVAL = gfsm_automaton_get_final_weight(fsm, id);
