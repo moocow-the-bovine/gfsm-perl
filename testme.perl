@@ -106,11 +106,16 @@ sub compose2 {
 
   ##-- hack for viewps: make human-readable labs
   our $labs = Storable::dclone($abet);
+  $labs->insert('a',1);
+  $labs->insert('b',2);
+  $labs->insert('c',3);
   $labs->insert('eps',  Gfsm::epsilon);
   $labs->insert('eps1', Gfsm::epsilon1);
   $labs->insert('eps2', Gfsm::epsilon2);
 
   ##-- Phase 1: tweak epsilon arcs in shared alphabet
+  my $fsm1_raw = $fsm1->clone;
+  my $fsm2_raw = $fsm2->clone;
   $fsm1->_compose_prepare_fsm1();   # prepare fsm1 for composition
   $fsm2->_compose_prepare_fsm2();   # prepare fsm2 for composition
 
@@ -147,15 +152,17 @@ sub test_compose {
   our $fsm1 = Gfsm::Automaton->new();
   $fsm1->root(0);
   $fsm1->add_arc(0,1, 1, 1,  0);
-  $fsm1->add_arc(0,1, 2, 2,  0);
-  $fsm1->add_arc(1,1, 10,0, 0);
-  $fsm1->final_weight(1,0);
+  $fsm1->add_arc(1,2, 2, 2,  0);
+  $fsm1->add_arc(2,3, 1, 0,  0);
+  $fsm1->add_arc(3,4, 0, 2,  0);
+  $fsm1->final_weight(4,0);
 
   our $fsm2 = Gfsm::Automaton->new();
   $fsm2->root(0);
   $fsm2->add_arc(0,0, 1, 2, 0);
   $fsm2->add_arc(0,0, 2, 3, 0);
-  $fsm2->add_arc(0,0, 0,20, 0);
+  $fsm2->add_arc(0,0, 0, 1, 0);
+  $fsm2->add_arc(0,0, 2, 0, 0);
   $fsm2->final_weight(0,0);
 
   our $c1 = compose1($fsm1,$fsm2);
