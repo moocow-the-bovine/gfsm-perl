@@ -25,6 +25,7 @@ gfsmWeight       T_GFSM_WEIGHT
 
 gfsmArcSortMode  T_UINT
 gfsmLabelSide    T_UINT
+gfsmArcComp      T_UINT
 
 ######################################################################
 # perl->C

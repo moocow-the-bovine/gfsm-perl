@@ -42,10 +42,32 @@ Gfsm::constants - constants defined in the Gfsm module.
  ##--------------------------------------------------------------
  ## Automaton arc-sort modes
  use Gfsm qw(:sortmodes);
+
  $mod = $Gfsm::ASMNone   = Gfsm::ASMNone();
  $mod = $Gfsm::ASMLower  = Gfsm::ASMLower();
  $mod = $Gfsm::ASMUpper  = Gfsm::ASMUpper();
  $mod = $Gfsm::ASMWeight = Gfsm::ASMWeight();
+
+ $mod = $Gfsm::ACNone    = Gfsm::ACNone();
+ $mod = $Gfsm::ACReverse = Gfsm::ACReverse();
+ $mod = $Gfsm::ACAll     = Gfsm::ACAll();
+
+ $mod = $Gfsm::ACLower   = Gfsm::ACLower();
+ $mod = $Gfsm::ACUpper   = Gfsm::ACUpper();
+ $mod = $Gfsm::ACWeight  = Gfsm::ACWeight();
+ $mod = $Gfsm::ACSource  = Gfsm::ACSource();
+ $mod = $Gfsm::ACTarget  = Gfsm::ACTarget();
+ $mod = $Gfsm::ACUser    = Gfsm::ACUser();
+
+ $mod = $Gfsm::ACLowerR  = Gfsm::ACLowerR();
+ $mod = $Gfsm::ACUpperR  = Gfsm::ACUpperR();
+ $mod = $Gfsm::ACWeightR = Gfsm::ACWeightR();
+ $mod = $Gfsm::ACSourceR = Gfsm::ACSourceR();
+ $mod = $Gfsm::ACTargetR = Gfsm::ACTargetR();
+ $mod = $Gfsm::ACUserR   = Gfsm::ACUserR();
+
+
+
 
  ##--------------------------------------------------------------
  ## Label sides

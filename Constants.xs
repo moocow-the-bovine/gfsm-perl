@@ -145,6 +145,118 @@ OUTPUT:
  RETVAL
 
 ##--------------------------------------------------------------
+## gfsmArc.h: arc comparisons (new sort modes): forward
+
+##-- pseudo
+gfsmArcComp
+ACNone()
+CODE:
+ RETVAL=gfsmACNone;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACReverse()
+CODE:
+ RETVAL=gfsmACReverse;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACAll()
+CODE:
+ RETVAL=gfsmACAll;
+OUTPUT:
+ RETVAL
+
+##-- forward
+gfsmArcComp
+ACLower()
+CODE:
+ RETVAL=gfsmACLower;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACUpper()
+CODE:
+ RETVAL=gfsmACUpper;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACWeight()
+CODE:
+ RETVAL=gfsmACWeight;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACSource()
+CODE:
+ RETVAL=gfsmACSource;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACTarget()
+CODE:
+ RETVAL=gfsmACTarget;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACUser()
+CODE:
+ RETVAL=gfsmACUser;
+OUTPUT:
+ RETVAL
+
+##-- reverse
+gfsmArcComp
+ACLowerR()
+CODE:
+ RETVAL=gfsmACLowerR;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACUpperR()
+CODE:
+ RETVAL=gfsmACUpperR;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACWeightR()
+CODE:
+ RETVAL=gfsmACWeightR;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACSourceR()
+CODE:
+ RETVAL=gfsmACSourceR;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACTargetR()
+CODE:
+ RETVAL=gfsmACTargetR;
+OUTPUT:
+ RETVAL
+
+gfsmArcComp
+ACUserR()
+CODE:
+ RETVAL=gfsmACUserR;
+OUTPUT:
+ RETVAL
+
+
+##--------------------------------------------------------------
 ## gfsmArc.h: label sides
 gfsmLabelSide
 LSBoth()

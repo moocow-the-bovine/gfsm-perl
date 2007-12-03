@@ -9,7 +9,7 @@ use Exporter;
 
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.0213';
+our $VERSION = '0.0214';
 
 require XSLoader;
 XSLoader::load('Gfsm', $VERSION);
@@ -71,11 +71,54 @@ our $ASMLower  = ASMLower();
 our $ASMUpper  = ASMUpper();
 our $ASMWeight = ASMWeight();
 
+##-- new-style: pseudo
+our $ACNone    = ACNone();
+our $ACReverse = ACReverse();
+our $ACAll     = ACAll();
+
+##-- new-style: forward
+our $ACLower   = ACLower();
+our $ACUpper   = ACUpper();
+our $ACWeight  = ACWeight();
+our $ACSource  = ACSource();
+our $ACTarget  = ACTarget();
+our $ACUser    = ACUser();
+
+##-- new-style: reverse
+our $ACLowerR  = ACLowerR();
+our $ACUpperR  = ACUpperR();
+our $ACWeightR = ACWeightR();
+our $ACSourceR = ACSourceR();
+our $ACTargetR = ACTargetR();
+our $ACUserR   = ACUserR();
+
 $EXPORT_TAGS{sortmodes} = [
+			   ##-- old-style
 			   qw($ASMNone   ASMNone),
 			   qw($ASMLower  ASMLower),
 			   qw($ASMUpper  ASMUpper),
 			   qw($ASMWeight ASMWeight),
+			   ##
+			   ##-- new-style: pseudo
+			   qw($ACNone    ACNone()),
+			   qw($ACReverse ACReverse()),
+			   qw($ACAll     ACAll()),
+			   ##
+			   ##-- new-style: forward
+			   qw($ACLower   ACLower()),
+			   qw($ACUpper   ACUpper()),
+			   qw($ACWeight  ACWeight()),
+			   qw($ACSource  ACSource()),
+			   qw($ACTarget  ACTarget()),
+			   qw($ACUser    ACUser()),
+			   ##
+			   ##-- new-style: reverse
+			   qw($ACLowerR  ACLowerR()),
+			   qw($ACUpperR  ACUpperR()),
+			   qw($ACWeightR ACWeightR()),
+			   qw($ACSourceR ACSourceR()),
+			   qw($ACTargetR ACTargetR()),
+			   qw($ACUserR   ACUserR()),
 			  ];
 
 ##--------------------------------------------------------------
