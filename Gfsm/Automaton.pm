@@ -302,8 +302,8 @@ sub intersect_full {
   return $fsmout;
 }
 sub intersect {my $fsm=shift->clone; $fsm->_intersect(@_); return $fsm;}
-sub invert {my $fsm=shift->clone; $fsm->_invert(@_); return $fsm;}
-sub product {my $fsm=shift->clone; $fsm->_product(@_); return $fsm;}
+sub invert   {my $fsm=shift->clone; $fsm->_invert(@_); return $fsm;}
+sub product  {my $fsm=shift->clone; $fsm->_product(@_); return $fsm;}
 sub project {my $fsm=shift->clone; $fsm->_project(@_); return $fsm;}
 sub reverse {my $fsm=shift->clone; $fsm->_reverse(@_); return $fsm;}
 sub replace {my $fsm=shift->clone; $fsm->_reverse(@_); return $fsm;}

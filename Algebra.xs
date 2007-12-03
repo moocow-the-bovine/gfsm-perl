@@ -157,9 +157,15 @@ gfsm_automaton_product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 # *  Destructively alters both @fsm1 and @fsm2
 # */
 void
+gfsm_automaton_product2(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
+CODE:
+ gfsm_automaton_product2(fsm1,fsm2);
+
+#//-- alias
+void
 __product(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2)
 CODE:
- _gfsm_automaton_product(fsm1,fsm2);
+ gfsm_automaton_product2(fsm1,fsm2);
 
 
 #//------------------------------
