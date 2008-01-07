@@ -39,6 +39,8 @@ t/07_lookup.t
 t/08_viterbi.t
 t/09_arith.t
 
+t/test.lab
+
 t/automaton-in.tfst
 t/closure-plus-in.tfst
 t/closure-star-in.tfst
