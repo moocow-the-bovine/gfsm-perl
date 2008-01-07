@@ -3,8 +3,8 @@ use ExtUtils::MakeMaker;
 ##----------------------------------------------------------------------
 ## Configuration
 ##----------------------------------------------------------------------
-if (system("pkg-config --atleast-version=0.0.9 gfsm") != 0) {
-  die("Required module gfsm >= v0.0.9 not found!\n");
+if (system("pkg-config --atleast-version=0.0.10 gfsm") != 0) {
+  die("Required module gfsm >= v0.0.10 not found!\n");
 }
 
 $GFSM_IFLAGS = join(' ', map { $s=`pkg-config --cflags-only-I $_`; chomp($s); $s } qw(gfsm glib-2.0));
@@ -68,6 +68,7 @@ sub MY::depend {
 		   ." Lookup.xs"
 		   ." Paths.xs"
 		   ." Trie.xs"
+		   ." Indexed.xs"
 		  )
 		 ."\n\n"
 		 ##-- c->o dependencies

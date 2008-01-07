@@ -9,7 +9,7 @@ use Exporter;
 
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.0214';
+our $VERSION = '0.0215';
 
 require XSLoader;
 XSLoader::load('Gfsm', $VERSION);
@@ -17,6 +17,7 @@ XSLoader::load('Gfsm', $VERSION);
 # Preloaded methods go here.
 require Gfsm::Alphabet;
 require Gfsm::Automaton;
+require Gfsm::Automaton::Indexed;
 
 # Autoload methods go after =cut, and are processed by the autosplit program.
 
@@ -166,6 +167,7 @@ for finite-state machine operations.
 Gfsm::constants(3perl),
 Gfsm::Alphabet(3perl),
 Gfsm::Automaton(3perl),
+Gfsm::Automaton::Indexed(3perl),
 Gfsm::Semiring(3perl),
 perl(1),
 gfsmutils(1),
@@ -177,7 +179,7 @@ Bryan Jurish E<lt>moocow@ling.uni-potsdam.deE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2005 by Bryan Jurish
+Copyright (C) 2005-2008 by Bryan Jurish
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.4 or,

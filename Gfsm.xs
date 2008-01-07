@@ -63,3 +63,8 @@ INCLUDE: Arith.xs
 INCLUDE: Lookup.xs
 INCLUDE: Paths.xs
 INCLUDE: Trie.xs
+
+##=====================================================================
+## Gfsm::Automaton::Indexed
+##=====================================================================
+INCLUDE: Indexed.xs

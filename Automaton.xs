@@ -61,6 +61,7 @@ gfsm_automaton_clear(gfsmAutomaton *fsm)
 void
 DESTROY(gfsmAutomaton* fsm)
 CODE:
+ //g_printerr("Gfsm::Automaton::DESTROY(fsm=%p)\n", fsm);
  if (fsm) gfsm_automaton_free(fsm);
  g_blow_chunks();
 
