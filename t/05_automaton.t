@@ -60,8 +60,8 @@ evalok('$fsm->add_arc(6,1, 0,0, 0); $fsm->is_cyclic==1;');
 ##-- 29..32 : binary I/O
 ##   HACK: arc-sort is required for identically ordered arcs after save and reload!
 evalok('$fsm->arcsort(Gfsm::ASMLower); $fsm->sort_mode==Gfsm::ASMLower;');
-evalok('$fsm->save("tmp.gfst");');
-evalok('($fsm2=Gfsm::Automaton->new()) && $fsm2->load("tmp.gfst");');
+evalok("\$fsm->save('$TEST_DIR/tmp.gfst');");
+evalok("(\$fsm2=Gfsm::Automaton->new()) && \$fsm2->load('$TEST_DIR/tmp.gfst');");
 fsmok("fsm(fsm)===fsm(fsm2)", $fsm, $fsm2);
 
 ##-- 33..49 : arciter

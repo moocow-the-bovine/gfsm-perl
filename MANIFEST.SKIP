@@ -17,6 +17,7 @@ CVS
 tmp.*\.tfst$
 \.lab$
 \.gfst$
+\.gfsx$
 
 \.old$
 \.ps$

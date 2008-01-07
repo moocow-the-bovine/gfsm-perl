@@ -25,6 +25,7 @@ ppport.h
 
 Gfsm/Alphabet.pm
 Gfsm/Automaton.pm
+Gfsm/Automaton/Indexed.pm
 Gfsm/constants.pod
 Gfsm/Semiring.pod
 
