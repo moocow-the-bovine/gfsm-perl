@@ -50,7 +50,7 @@ gfsm_indexed_automaton_clear(gfsmIndexedAutomaton *xfsm)
 void
 DESTROY(gfsmIndexedAutomaton* xfsm)
 CODE:
- //g_printerr("Gfsm::Automaton::Indexed::DESTROY(xfsm=%p)\n", xfsm);
+ g_printerr("Gfsm::Automaton::Indexed::DESTROY(sclr=%p, xfsm=%p)\n", ST(0), xfsm);
  if (xfsm) gfsm_indexed_automaton_free(xfsm);
  g_blow_chunks();
 
@@ -257,7 +257,7 @@ PREINIT:
  gfsmError *err=NULL;
  gfsmIOHandle *ioh=NULL;
 CODE:
- ioh    = gfsmio_new_zfile(f,"wb",zlevel);
+ ioh = zlevel ? gfsmio_new_zfile(f,"wb",zlevel) : gfsmio_new_file(f);
  RETVAL = gfsm_indexed_automaton_save_bin_handle(xfsm, ioh, &err);
  if (err && err->message) {
    SV *perlerr = get_sv("Gfsm::Error",TRUE);

@@ -12,6 +12,8 @@ gfsmLabelVector*   T_LABELID_VECTOR
 gfsmStateIdVector* T_STATEID_VECTOR
 
 gboolean         T_INT
+gint             T_INT
+gchar            T_CHAR
 
 guint            T_UINT
 gfsmLabelId      T_UINT
@@ -38,6 +40,11 @@ INPUT
 #    char *cstr = SvPV_nolen($arg);
 #    $var.assign(cstr, SvCUR($arg));
 #  }
+
+T_CHAR
+  {
+      $var = *( SvPV($arg,1) );
+  }
 
 T_INT
   {
@@ -116,6 +123,11 @@ OUTPUT
 
 #T_std_string
 #  $arg = newSVpvn($var.data(), $var.length());
+
+T_CHAR
+  {
+      sv_setpvn($arg,&$var,1);
+  }
 
 T_INT
   {

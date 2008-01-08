@@ -143,7 +143,7 @@ sub acmask_from_args {
   my $m = 0;
   my ($i);
   foreach $i (0..$#_) {
-    $m |= gfsm_acmask_new($_[$i], $i);
+    $m |= acmask_new($_[$i], $i);
   }
   return $m;
 }
