@@ -1,6 +1,6 @@
 #/*-*- Mode: C -*- */
 
-MODULE = Gfsm		PACKAGE = Gfsm
+MODULE = Gfsm		PACKAGE = Gfsm   PREFIX = gfsm_
 
 ##=====================================================================
 ## Constants
@@ -145,9 +145,8 @@ OUTPUT:
  RETVAL
 
 ##--------------------------------------------------------------
-## gfsmArc.h: arc comparisons (new sort modes): forward
+## gfsmArc.h: arc comparisons (new sort modes): forward comparisons
 
-##-- pseudo
 gfsmArcComp
 ACNone()
 CODE:
@@ -212,7 +211,9 @@ CODE:
 OUTPUT:
  RETVAL
 
-##-- reverse
+##--------------------------------------------------------------
+## gfsmArc.h: arc comparisons (new sort modes): reverse comparisons
+
 gfsmArcComp
 ACLowerR()
 CODE:
@@ -254,6 +255,41 @@ CODE:
  RETVAL=gfsmACUserR;
 OUTPUT:
  RETVAL
+
+##--------------------------------------------------------------
+## gfsmArc.h: arc sort mode construction
+
+int
+ACShift()
+CODE:
+ RETVAL=gfsmACShift;
+OUTPUT:
+ RETVAL
+
+int
+ACMaxN()
+CODE:
+ RETVAL=gfsmACMaxN;
+OUTPUT:
+ RETVAL
+
+gfsmArcCompMask
+gfsm_acmask_from_chars(const char *maskchars)
+
+gfsmArcCompMask
+gfsm_acmask_new(gfsmArcComp cmp, gint nth=0)
+
+gfsmArcComp
+gfsm_acmask_nth(gfsmArcCompMask m, gint nth=0)
+
+gfsmArcComp
+gfsm_acmask_nth_comp(gfsmArcCompMask m, gint nth=0)
+
+gboolean
+gfsm_acmask_nth_reverse(gfsmArcCompMask m, gint nth=0)
+
+gchar
+gfsm_acmask_nth_char(gfsmArcCompMask m, gint nth=0)
 
 
 ##--------------------------------------------------------------

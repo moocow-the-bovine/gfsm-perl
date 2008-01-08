@@ -263,7 +263,7 @@ PREINIT:
  gfsmError *err=NULL;
  gfsmIOHandle *ioh=NULL;
 CODE:
- ioh    = gfsmio_new_zfile(f,"wb",zlevel);
+ ioh = zlevel ? gfsmio_new_zfile(f,"wb",zlevel) : gfsmio_new_file(f);
  RETVAL = gfsm_automaton_save_bin_handle(fsm, ioh, &err);
  if (err && err->message) {
    SV *perlerr = get_sv("Gfsm::Error",TRUE);

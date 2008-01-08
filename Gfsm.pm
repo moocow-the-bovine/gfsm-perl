@@ -93,6 +93,10 @@ our $ACSourceR = ACSourceR();
 our $ACTargetR = ACTargetR();
 our $ACUserR   = ACUserR();
 
+##-- new-style: sizes
+our $ACShift   = ACShift();
+our $ACMaxN    = ACMaxN();
+
 $EXPORT_TAGS{sortmodes} = [
 			   ##-- old-style
 			   qw($ASMNone   ASMNone),
@@ -120,7 +124,30 @@ $EXPORT_TAGS{sortmodes} = [
 			   qw($ACSourceR ACSourceR()),
 			   qw($ACTargetR ACTargetR()),
 			   qw($ACUserR   ACUserR()),
+			   ##
+			   ##-- new-style: sizes
+			   qw($ACShift ACShift()),
+			   qw($ACMaxN  ACMaxN()),
 			  ];
+
+##--------------------------------------------------------------
+## Constants: Sort Modes (new-style): functions
+
+## $str = Gfsm::acmask_to_chars($acmask)
+sub acmask_to_chars {
+  return join('', map { acmask_nth_char($_[0],$_) } (0..$ACMaxN));
+}
+
+## $mask = Gfsm::acmask_from_args($cmp0, ...)
+sub acmask_from_args {
+  my $m = 0;
+  my ($i);
+  foreach $i (0..$#_) {
+    $m |= gfsm_acmask_new($_[$i], $i);
+  }
+  return $m;
+}
+
 
 ##--------------------------------------------------------------
 ## Constants: Label sides
