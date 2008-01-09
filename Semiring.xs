@@ -58,6 +58,13 @@ CODE:
 OUTPUT:
  RETVAL
 
+const char *
+type_name(gfsmSRType typ)
+CODE:
+ RETVAL = gfsm_sr_type_to_name(typ);
+OUTPUT:
+ RETVAL
+
 gfsmWeight
 zero(gfsmSemiring *sr)
 CODE:
