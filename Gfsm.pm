@@ -135,7 +135,7 @@ $EXPORT_TAGS{sortmodes} = [
 
 ## $str = Gfsm::acmask_to_chars($acmask)
 sub acmask_to_chars {
-  return join('', map { acmask_nth_char($_[0],$_) } (0..$ACMaxN));
+  return join('', map { acmask_nth_char($_[0],$_) } (0..($ACMaxN-1)));
 }
 
 ## $mask = Gfsm::acmask_from_args($cmp0, ...)

@@ -6,6 +6,17 @@
 #include <gfsm.h>
 
 /*======================================================================
+ * Debugging
+ */
+/*#define GFSMDEBUG 1*/
+
+#if defined(GFSMDEBUG) || defined(GFSM_PERL_DEBUG)
+# define GFSM_PERL_DEBUG_EVAL(code_) code_
+#else
+# define GFSM_PERL_DEBUG_EVAL(code_)
+#endif
+
+/*======================================================================
  * Memory Stuff
  */
 extern GMemVTable gfsm_perl_vtable;

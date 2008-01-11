@@ -4,8 +4,6 @@
 #undef VERSION
 #include <gfsmConfig.h>
 
-/*#define GFSMDEBUG 1*/
-
 /*======================================================================
  * Memory Stuff
  */
