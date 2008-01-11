@@ -66,7 +66,19 @@ Gfsm::constants - constants defined in the Gfsm module.
  $mod = $Gfsm::ACTargetR = Gfsm::ACTargetR();
  $mod = $Gfsm::ACUserR   = Gfsm::ACUserR();
 
+ ##-- mask construction & parsing
+ $bits = $Gfsm::ACShift  = Gfsm::ACShift();
+ $maxn = $Gfsm::ACMaxN   = Gfsm::ACMaxN();
 
+ $mask  = Gfsm::acmask_from_chars($chars);   ##-- $chars a string matching /^[lLuUsStTwW_]*$/
+ $mask  = Gfsm::acmask_from_args(@cmps);     ##-- @cmps a list of elementary comparisons
+ $chars = Gfsm::acmask_to_chars($mask);
+
+ $mask  = Gfsm::acmask_new($cmp,$n);          ##-- new mask for ${n}th comparison $cmp
+ $cmp   = Gfsm::acmask_nth($mask,$n);         ##-- get ${n}th comparison in $mask
+ $cmp0  = Gfsm::acmask_nth_comp($mask,$n);    ##-- get ${n}nth field in $mask (modulo sort direction)
+ $bool  = Gfsm::acmask_nth_reverse($mask,$n); ##-- is the ${n}th comparison in $mask reversed?
+ $char  = Gfsm::acmask_nth_char($mask,$n);    ##-- single-character representation of ${n}th comp in $mask
 
 
  ##--------------------------------------------------------------
