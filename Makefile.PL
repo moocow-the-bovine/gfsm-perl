@@ -28,7 +28,8 @@ WriteMakefile
    LIBS         => "$GFSM_LDFLAGS $GFSM_LIBS",      ##-- additional libraries
    DEFINE       => '-DHAVE_CONFIG_H',     ##-- additional defines
    INC          => $GFSM_IFLAGS,      ##-- additional includes
-   CCFLAGS      => '',      ##-- additional flags
+   CCFLAGS      => '',          ##-- additional flags
+   #OPTIMIZE    => '-O2 -pipe', ##-- optimization flags
    OBJECT       => 'Gfsm.o GfsmPerl.o',
 
    ##-- DEBUG
