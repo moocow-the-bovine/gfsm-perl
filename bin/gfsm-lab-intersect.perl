@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-if (!@ARGV) {
+if (!@ARGV || $ARGV[0] =~ m/^\-{1,2}h/) {
   print STDERR "Usage: $0 LABFILE...\n";
   exit 1;
 }
