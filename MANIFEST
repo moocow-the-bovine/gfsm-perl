@@ -29,6 +29,13 @@ Gfsm/Automaton/Indexed.pm
 Gfsm/constants.pod
 Gfsm/Semiring.pod
 
+bin/gfsm-enumerate.perl
+bin/gfsm-extract-alphabet.perl
+bin/gfsm-lab-convert.perl
+bin/gfsm-lab-intersect.perl
+bin/gfsm-make-editor.perl
+bin/gfsm-replace-label.perl
+
 t/common.plt
 t/01_ini.t
 t/02_constant.t
