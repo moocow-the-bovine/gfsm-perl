@@ -32,6 +32,9 @@ WriteMakefile
    #OPTIMIZE    => '-O2 -pipe', ##-- optimization flags
    OBJECT       => 'Gfsm.o GfsmPerl.o',
 
+   ##-- install these
+   EXE_FILES => [glob("bin/*.perl")],
+
    ##-- DEBUG
    #MAKEAPERL=>1,
    #LINKTYPE=>'static',
