@@ -1,6 +1,10 @@
 Change log for perl module Gfsm:
 
-v0.0216 (r564..???) Tue, 25 Nov 2008 11:29:58 +0100
+v0.0217 (r601..???) Mon, 03 Aug 2009 12:17:15 +0200
+	+ fixed Gfsm::Alphabet::labels_to_string(), ...::string_to_labels()
+	  - requires gfsm C lib >= v0.0.10-pre11
+
+v0.0216 (r564..r600) Tue, 25 Nov 2008 11:29:58 +0100
 	+ added some useful utilities in bin/ subdirectory
 
 v0.0215 (r475..r563) 2008-01-11 15:48:13 +0100 (Fri, 11 Jan 2008)

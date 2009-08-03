@@ -170,7 +170,7 @@ sub test_compose {
 
   print "test_compose: done.\n";
 }
-test_compose;
+#test_compose;
 
 ##--------------------------------------------------------------
 ## I/O: Wrappers: Binary: Storable
@@ -215,6 +215,38 @@ sub STORABLE_thaw_new {
     or croak(ref($fsm)."::STORABLE_thaw(): error loading from string: $Gfsm::Error\n");
 }
 package main;
+
+##--------------------------------------------------------------
+## labels<->string
+
+sub test_lab_str {
+  my $abet = Gfsm::Alphabet->new();
+  $abet->load("test.lab") or die("$0: load failed for 'test.lab': $!");
+
+  my (@labs,$str,$labs);
+
+  ##-- labels -> string
+  @labs = qw(1 2 3 7);
+  ##
+  $str  = $abet->labels_to_string(\@labs, 1, 0);
+  print "$0: test_lab_str: lab->str(att=0): labs=(", join(' ', @labs), "); str=($str)\n";
+  ##
+  $str = $abet->labels_to_string(\@labs, 1, 1);
+  print "$0: test_lab_str: lab->str(att=1): labs=(", join(' ', @labs), "); str=($str)\n";
+
+  ##-- string -> labels
+  $str  = "a b c seven";
+  $labs = $abet->string_to_labels($str, 1, 0);
+  print "$0: test_lab_str: str->lab(att=0): str=($str); labs=(", join(' ', @$labs), ")\n";
+  ##
+  $str  = "abc[seven]";
+  $labs = $abet->string_to_labels($str, 1, 1);
+  print "$0: test_lab_str: str->lab(att=1): str=($str); labs=(", join(' ', @$labs), ")\n";
+
+  print STDERR "$0: test_lab_str() done.\n";
+  exit(0);
+}
+test_lab_str();
 
 
 ##--------------------------------------------------------------

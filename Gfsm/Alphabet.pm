@@ -221,8 +221,8 @@ Gfsm::Alphabet - object-oriented interface to libgfsm string alphabets.
 
  ##--------------------------------------------------------------
  ## String utilities
- #$labs = $abet->string_to_labels($str,$emit_warnings=1);               # BUGGY: lab-ify by character
- #$str  = $abet->labels_to_string($labs,$emit_warnings=1,$att_style=0); # BUGGY: stringify
+ $labs = $abet->string_to_labels($str, $emit_warnings=1,$att_style=0); # string->labels
+ $str  = $abet->labels_to_string($labs,$emit_warnings=1,$att_style=0); # labels->string
 
  ##--------------------------------------------------------------
  ## Conversion

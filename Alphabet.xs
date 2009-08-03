@@ -240,24 +240,24 @@ OUTPUT:
 ##--------------------------------------------------------------
 ## String Utilities
 
-##-- BUGGY
-#gfsmLabelVector *
-#string_to_labels(gfsmAlphabet *abet, const char *str, gboolean warn_on_undefined=TRUE)
-#CODE:
-# RETVAL = gfsm_alphabet_string_to_labels(abet,str,NULL,warn_on_undefined);
-#OUTPUT:
-# RETVAL
-#CLEANUP:
-# g_ptr_array_free(RETVAL,TRUE);
+##-- BUGGY (?)
+gfsmLabelVector *
+string_to_labels(gfsmAlphabet *abet, const char *str, gboolean warn_on_undefined=TRUE, gboolean att_style=FALSE)
+CODE:
+ RETVAL = gfsm_alphabet_generic_string_to_labels(abet,str,NULL,warn_on_undefined,att_style);
+OUTPUT:
+ RETVAL
+CLEANUP:
+ if (RETVAL) g_ptr_array_free(RETVAL,TRUE);
 
 
-##-- BUGGY
-#char *
-#labels_to_string(gfsmAlphabet *abet, gfsmLabelVector *labels, gboolean warn_on_undefined=TRUE, gboolean att_style=FALSE)
-#CODE:
-# RETVAL = gfsm_alphabet_labels_to_string(abet,labels,warn_on_undefined,att_style);
-#OUTPUT:
-# RETVAL
-#CLEANUP:
-# g_free(RETVAL);
-# g_ptr_array_free(labels,TRUE);
+##-- BUGGY (?)
+char *
+labels_to_string(gfsmAlphabet *abet, gfsmLabelVector *labels, gboolean warn_on_undefined=TRUE, gboolean att_style=FALSE)
+CODE:
+ RETVAL = gfsm_alphabet_labels_to_string(abet,labels,warn_on_undefined,att_style);
+OUTPUT:
+ RETVAL
+CLEANUP:
+ if (RETVAL) g_free(RETVAL);
+ if (labels) g_ptr_array_free(labels,TRUE);
