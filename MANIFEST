@@ -98,4 +98,4 @@ t/union-out.tfst
 
 t/lookup.tfst
 
-META.yml                                 Module meta-data (added by MakeMaker)
+#META.yml                                 Module meta-data (added by MakeMaker)
