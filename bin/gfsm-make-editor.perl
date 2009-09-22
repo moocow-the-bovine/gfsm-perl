@@ -9,7 +9,7 @@ use File::Basename qw(basename);
 ## Defaults
 
 our $prog    = basename($0);
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 our ($help,$version);
 
