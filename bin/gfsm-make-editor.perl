@@ -16,10 +16,21 @@ our ($help,$version);
 ##-- Extraction
 our $outfile = '-';
 
-our ($cost_match,$cost_insert,$cost_delete,$cost_subst) = (0,1,1,1);
+## %ops: ($op => \%opspec, ..)
+##  + where %opspec = ( $cost=>$cost_or_undef, (class_(lo|hi)=>$class), labs_(lo|hi)=>\@labids ),
+our %ops = (
+	    match  => { cost=>0, class_lo=>'<sigma>' },
+	    insert => { cost=>1, class_hi=>'<sigma>' },
+	    delete => { cost=>1, class_lo=>'<sigma>' },
+	    subst  => { cost=>1, class_lo=>'<sigma>', class_hi=>'<sigma>', },
+	   );
+
 our $numeric  = 1;
 our $max_cost = undef;
 our $delayed_action = undef;
+
+##-- which labels?
+our $scl_file = undef; ##-- defualt: none
 
 ##======================================================================
 ## Command-Line
@@ -28,20 +39,29 @@ GetOptions(##-- General
 	   'version|V' => \$version,
 
 	   ##-- Costs
-	   'cost-match|match|m=s'   => \$cost_match,
-	   'cost-insert|insert|i=s' => \$cost_insert,
-	   'cost-delete|delete|d=s' => \$cost_delete,
-	   'cost-substitute|substitute|subst|s=s' => \$cost_subst,
+	   'cost-match|match|m=s'   => \$ops{match}{cost},
+	   'cost-insert|insert|i=s' => \$ops{insert}{cost},
+	   'cost-delete|delete|d=s' => \$ops{delete}{cost},
+	   'cost-substitute|substitute|subst|s=s' => \$ops{subst}{cost},
 
 	   ##-- Editor Topology
 	   'max-cost|M=s'           => \$max_cost,
 	   'delayed-action|da'     => \$delayed_action,
 	   'no-delayed-action|no-delayed|immediate-action|immediate' => sub { $delayed_action=0; },
 
+	   ##-- Which labels?
+	   'superclasses|super|scl|S=s' => \$scl_file,
+	   'class-match|cm=s'=> \$ops{match}{class_lo},
+	   'class-insert|ci=s' => \$ops{insert}{class_hi},
+	   'class-delete|cd=s' => \$ops{delete}{class_lo},
+	   'class-subst-lo|csl=s' => \$ops{subst}{class_lo},
+	   'class-subst-hi|csh=s' => \$ops{subst}{class_hi},
+
 	   ##-- Which ops?
-	   'no-substitute|no-subst|S' => sub { undef($cost_subst); },
-	   'no-insert|no-ins|I'       => sub { undef($cost_insert); },
-	   'no-delete|no-del|D'       => sub { undef($cost_delete); },
+	   'no-match|nm' => sub { delete($ops{match}); },
+	   'no-substitute|no-subst|ns' => sub { delete($ops{subst}); },
+	   'no-insert|no-ins|ni'       => sub { delete($ops{insert}); },
+	   'no-delete|no-del|nd'       => sub { delete($ops{delete}); },
 
 	   ##-- I/O
 	   'output|o|F=s' => \$outfile,
@@ -57,14 +77,48 @@ if ($version) {
 }
 
 ##======================================================================
+## Subs: load superclass labels
+our %scl = qw(); ## ($classname => \@class_labids, ...)
+sub load_scl_file {
+  my $file = shift;
+  open(SCL,"<$file") || die("$0: open failed for .scl file '$file': $!");
+  my ($class,$labid);
+  while (<SCL>) {
+    chomp;
+    ($class,$labid) = split(/\s+/,$_);
+    next if (!defined($class) || !defined($labid));
+    push(@{$scl{$class}},$labid);
+  }
+  close(SCL);
+}
+
+
+##======================================================================
 ## Main
 our $labfile = @ARGV ? shift(@ARGV) : '-';
 our $abet = Gfsm::Alphabet->new();
 $abet->load($labfile) or die("$prog: load failed for alphabet file '$labfile': $!");
 
-##-- get labels
+##-- load labels
 our $string2id =$abet->asHash;
 our $id2string =$abet->asArray;
+
+##-- load superclass labels
+if (defined($scl_file)) {
+  load_scl_file($scl_file);
+} else {
+  $scl{'<sigma>'} = [grep {$_!=0} values(%$string2id)];
+}
+
+##-- get operand label-id subsets, populate $ops{$OP}{labs_(lo|hi)}
+while (($opname,$op)=each(%ops)) {
+  next if (!defined($op)); ##-- ignore
+  foreach $side (qw(lo hi)) {
+    next if (!defined($class=$op->{"class_$side"}));
+    die("$0: no superclass '$class' for operation '$opname' side '$side'") if (!defined($labs=$scl{$class}));
+    $op->{"labs_$side"} = $labs;
+  }
+}
 
 ##======================================================================
 ## subs: populate state
@@ -130,42 +184,55 @@ sub add_editor_path {
 ## undef = populate_state($fsm,$qid,$accumulated_cost)
 sub populate_state {
   my ($fsm,$qid,$cost_this) = @_;
-  my ($i, $q_nxt, $cost_nxt);
-  our (@labs);
+  my ($op,$lo,$hi, $q_nxt, $cost_nxt);
 
-  foreach $i (0..$#labs) {
-    if (defined($cost_match))  {
-      $cost_nxt = $cost_this + $cost_match;
+  ##-- populate: match
+  if (defined($op=$ops{match})) {
+    foreach $lo (@{$op->{labs_lo}}) {
+      $cost_nxt = $cost_this + $op->{cost};
       if (defined($q_nxt = cost2state($cost_nxt))) {
-	add_editor_path($fsm, $qid, $q_nxt, $labs[$i], $labs[$i], $cost_match);
+	add_editor_path($fsm, $qid, $q_nxt, $lo,$lo, $op->{cost});
 	$populate_queue{$q_nxt}=$cost_nxt;
       }
     }
-    if (defined($cost_insert)) {
-      $cost_nxt = $cost_this + $cost_insert;
+  }
+
+  ##-- populate: insert
+  if (defined($op=$ops{insert})) {
+    foreach $hi (@{$op->{labs_hi}}) {
+      $cost_nxt = $cost_this + $op->{cost};
       if (defined($q_nxt = cost2state($cost_nxt))) {
-	add_editor_path($fsm, $qid, $q_nxt, 0, $labs[$i], $cost_insert);
+	add_editor_path($fsm, $qid, $q_nxt, 0,$hi, $op->{cost});
 	$populate_queue{$q_nxt}=$cost_nxt;
       }
     }
-    if (defined($cost_delete)) {
-      $cost_nxt = $cost_this + $cost_delete;
+  }
+
+  ##-- populate: delete
+  if (defined($op=$ops{delete})) {
+    foreach $lo (@{$op->{labs_lo}}) {
+      $cost_nxt = $cost_this + $op->{cost};
       if (defined($q_nxt = cost2state($cost_nxt))) {
-	add_editor_path($fsm, $qid, $q_nxt, $labs[$i], 0, $cost_delete);
+	add_editor_path($fsm, $qid, $q_nxt, $lo,0, $op->{cost});
 	$populate_queue{$q_nxt}=$cost_nxt;
       }
     }
-    if (defined($cost_subst)) {
-      foreach $j (0..$#labs) {
-	next if ($j==$i);
-	$cost_nxt = $cost_this + $cost_subst;
+  }
+
+  ##-- populate: substitute
+  if (defined($op=$ops{subst})) {
+    foreach $lo (@{$op->{labs_lo}}) {
+      foreach $hi (@{$op->{labs_hi}}) {
+	next if ($hi==$lo);
+	$cost_nxt = $cost_this + $op->{cost};
 	if (defined($q_nxt = cost2state($cost_nxt))) {
-	  add_editor_path($fsm, $qid, $q_nxt, $labs[$i], $labs[$j], $cost_subst);
+	  add_editor_path($fsm, $qid, $q_nxt, $lo,$hi, $op->{cost});
 	  $populate_queue{$q_nxt}=$cost_nxt;
 	}
       }
     }
   }
+
 }
 
 
@@ -183,7 +250,6 @@ $cost2q{0} = 0;
 $populate_queue{0} = 0;
 our %q_done = qw();
 
-our @labs    = grep {$_ != 0} values(%$string2id);
 while (grep {!exists($q_done{$_})} keys(%populate_queue)) {
   $q = (grep {!exists($q_done{$_})} keys(%populate_queue))[0];
   populate_state($fsm,$q,$populate_queue{$q});
@@ -227,9 +293,18 @@ gfsm-make-editor.perl - make a Fischer-Wagner style editor FST
   -immediate-action         # don't delay non-match hypotheses (default)
 
  Operation Selection Options:
+  -no-match                 # don't generate match arcs
   -no-subst                 # don't generate substitution arcs
   -no-insert                # don't generate insertion arcs
   -no-delete                # don't generate deletion arcs
+
+ Operand Selection Options:
+  -superclasses SCLFILE     # load lextools(1) superclass labels from SCLFILE
+  -class-match    CLASS     # superclass for match  input  (default='<sigma>')
+  -class-insert   CLASS     # superclass for insert output (default='<sigma>')
+  -class-delete   CLASS     # superclass for delete input  (default='<sigma>')
+  -class-subst-lo CLASS     # superclass for subst  input  (default='<sigma>')
+  -class-subst-hi CLASS     # superclass for subst  output (default='<sigma>')
 
  I/O Options:
   -output      GFSMFILE     # output automaton
