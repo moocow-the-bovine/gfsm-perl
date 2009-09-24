@@ -23,6 +23,9 @@ our %ops = (
 	    insert => { cost=>1, class_hi=>'<sigma>' },
 	    delete => { cost=>1, class_lo=>'<sigma>' },
 	    subst  => { cost=>1, class_lo=>'<sigma>', class_hi=>'<sigma>', },
+	    double => { cost=>undef, class_lo=>'<sigma>' },
+	    undouble => { cost=>undef, class_lo=>'<sigma>' },
+	    exchange => { cost=>undef, class_lo=>'<sigma>', },
 	   );
 
 our $numeric  = 1;
@@ -43,6 +46,9 @@ GetOptions(##-- General
 	   'cost-insert|insert|i=s' => \$ops{insert}{cost},
 	   'cost-delete|delete|d=s' => \$ops{delete}{cost},
 	   'cost-substitute|substitute|subst|s=s' => \$ops{subst}{cost},
+	   'cost-double|double|2=s' => \$ops{double}{cost},
+	   'cost-undouble|undouble|1=s' => \$ops{undouble}{cost},
+	   'cost-exchange|exchange|x=s' => \$ops{exchange}{cost},
 
 	   ##-- Editor Topology
 	   'max-cost|M=s'           => \$max_cost,
@@ -56,12 +62,18 @@ GetOptions(##-- General
 	   'class-delete|cd=s' => \$ops{delete}{class_lo},
 	   'class-subst-lo|csl=s' => \$ops{subst}{class_lo},
 	   'class-subst-hi|csh=s' => \$ops{subst}{class_hi},
+	   'class-double|c2=s' => \$ops{double}{class_lo},
+	   'class-undouble|c1=s' => \$ops{undouble}{class_lo},
+	   'class-exchange|cx=s' => \$ops{exchange}{class_lo},
 
 	   ##-- Which ops?
 	   'no-match|nm' => sub { delete($ops{match}); },
 	   'no-substitute|no-subst|ns' => sub { delete($ops{subst}); },
 	   'no-insert|no-ins|ni'       => sub { delete($ops{insert}); },
 	   'no-delete|no-del|nd'       => sub { delete($ops{delete}); },
+	   'no-double|no-dbl|n2'       => sub { delete($ops{double}); },
+	   'no-undouble|no-undbl|n1'   => sub { delete($ops{undouble}); },
+	   'no-exchange|no-xc|nx'      => sub { delete($ops{exchange}); },
 
 	   ##-- I/O
 	   'output|o|F=s' => \$outfile,
@@ -126,6 +138,17 @@ while (($opname,$op)=each(%ops)) {
 ## %cost2q = ( $cost=>$qid, ... )
 our %cost2q = qw();
 
+## $qid = key2state($key,$is_final)
+##  + simple wrapper for $cost2q{$key}=get_or_insert_state();
+sub key2state {
+  my ($key,$is_final) = @_;
+  return $cost2q{$key} if (defined($cost2q{$key}));
+  our ($fsm);
+  my $q = $cost2q{$key} = $fsm->add_state;
+  $fsm->final_weight($q,0) if ($is_final);
+  return $q;
+}
+
 ## $qid = cost2state($cost)
 ## $qid = cost2state($cost,$IS_DELAYED)
 ##  + get or insert target state for cost $cost
@@ -139,10 +162,7 @@ sub cost2state {
   return $cost2q{$key} if (defined($cost2q{$key}));
   return 0 if (!defined($max_cost) && !$delayed);
   return undef if (defined($max_cost) && $cost > $max_cost);
-  our ($fsm);
-  my $q = $cost2q{$key} = $fsm->add_state;
-  if (!$delayed) { $fsm->final_weight($q,0); }
-  return $q;
+  return key2state($key, !$delayed);
 }
 
 ## populate_queue: ($qid=>$cost_at_qid, ...)
@@ -156,19 +176,21 @@ our %delayed_arcs_in  = qw();
 ##  + s.t. there exists an arc ${q_del} --eps:${hi}--> ${q_dst} <0>
 our %delayed_arcs_out = qw();
 
-## undef = add_editor_path($fsm, $qid_src, $qid_dst, $lo, $hi, $cost)
+## undef = add_editor_path($fsm, $qid_src, $qid_dst, $lo, $hi, $cost, $FORCE)
 ##  + add a path in $fsm from $qid_src to $qid_dst on labels ($lo,$hi) with weight $cost
-##  + for immediate-action editors (option '-no-delayed-action'), this is equivalend to $fsm->add_arc(@_)
+##  + for immediate-action editors (option '-no-delayed-action') or $FORCE true, this is equivalend to $fsm->add_arc(@_)
 sub add_editor_path {
-  my ($fsm,$q_src,$q_dst,$lo,$hi,$cost) = @_;
+  my ($fsm,$q_src,$q_dst,$lo,$hi,$cost, $force) = @_;
+  ##-- $force default: check for immediate action, match-, or delete-operation arcs
+  $force = (!$delayed_action || $lo==$hi || $hi==$Gfsm::epsilon) if (!defined($force));
   ##
-  ##-- check for immediate action, match-, or delete-operation arcs
-  if (!$delayed_action || $lo==$hi || $hi==$Gfsm::epsilon) {
+  ##-- force?
+  if ($force) {
     $fsm->add_arc($q_src,$q_dst,$lo,$hi,$cost);
     return;
   }
   ##
-  ##-- delayed action: get intermediate state
+  ##-- delayed action (insert): get intermediate state
   my $q_del = cost2state($cost,1);
   if (!exists($delayed_arcs_in{"${q_src} --${lo}:eps--> ${q_src} <$cost>"})) {
     $delayed_arcs_in{"${q_src} --${lo}:eps--> ${q_src} <$cost>"} = undef;
@@ -188,8 +210,8 @@ sub populate_state {
 
   ##-- populate: match
   if (defined($op=$ops{match})) {
+    $cost_nxt = $cost_this + $op->{cost};
     foreach $lo (@{$op->{labs_lo}}) {
-      $cost_nxt = $cost_this + $op->{cost};
       if (defined($q_nxt = cost2state($cost_nxt))) {
 	add_editor_path($fsm, $qid, $q_nxt, $lo,$lo, $op->{cost});
 	$populate_queue{$q_nxt}=$cost_nxt;
@@ -199,8 +221,8 @@ sub populate_state {
 
   ##-- populate: insert
   if (defined($op=$ops{insert})) {
+    $cost_nxt = $cost_this + $op->{cost};
     foreach $hi (@{$op->{labs_hi}}) {
-      $cost_nxt = $cost_this + $op->{cost};
       if (defined($q_nxt = cost2state($cost_nxt))) {
 	add_editor_path($fsm, $qid, $q_nxt, 0,$hi, $op->{cost});
 	$populate_queue{$q_nxt}=$cost_nxt;
@@ -210,8 +232,8 @@ sub populate_state {
 
   ##-- populate: delete
   if (defined($op=$ops{delete})) {
+    $cost_nxt = $cost_this + $op->{cost};
     foreach $lo (@{$op->{labs_lo}}) {
-      $cost_nxt = $cost_this + $op->{cost};
       if (defined($q_nxt = cost2state($cost_nxt))) {
 	add_editor_path($fsm, $qid, $q_nxt, $lo,0, $op->{cost});
 	$populate_queue{$q_nxt}=$cost_nxt;
@@ -221,12 +243,54 @@ sub populate_state {
 
   ##-- populate: substitute
   if (defined($op=$ops{subst})) {
+    $cost_nxt = $cost_this + $op->{cost};
     foreach $lo (@{$op->{labs_lo}}) {
       foreach $hi (@{$op->{labs_hi}}) {
 	next if ($hi==$lo);
-	$cost_nxt = $cost_this + $op->{cost};
 	if (defined($q_nxt = cost2state($cost_nxt))) {
 	  add_editor_path($fsm, $qid, $q_nxt, $lo,$hi, $op->{cost});
+	  $populate_queue{$q_nxt}=$cost_nxt;
+	}
+      }
+    }
+  }
+
+  ##-- populate: double
+  if (defined($op=$ops{double}) && defined($op->{cost})) {
+    $cost_nxt = $cost_this + $op->{cost};
+    foreach $lo (@{$op->{labs_lo}}) {
+      if (defined($q_nxt = cost2state($cost_nxt))) {
+	$qid1 = key2state("DOUBLE:q=$qid,lo=$lo",0);
+	add_editor_path($fsm, $qid,  $qid1,  $lo,$lo, $op->{cost}, 1);
+	add_editor_path($fsm, $qid1, $q_nxt,   0,$lo, 0,           1);
+	$populate_queue{$q_nxt}=$cost_nxt;
+      }
+    }
+  }
+
+  ##-- populate: undouble
+  if (defined($op=$ops{undouble}) && defined($op->{cost})) {
+    $cost_nxt = $cost_this + $op->{cost};
+    foreach $lo (@{$op->{labs_lo}}) {
+      if (defined($q_nxt = cost2state($cost_nxt))) {
+	$qid1 = key2state("UNDOUBLE:q=$qid,lo=$lo",0);
+	add_editor_path($fsm, $qid,  $qid1,  $lo,$lo, $op->{cost}, 1);
+	add_editor_path($fsm, $qid1, $q_nxt, $lo,0,   0,           1);
+	$populate_queue{$q_nxt}=$cost_nxt;
+      }
+    }
+  }
+
+  ##-- populate: exchange
+  if (defined($op=$ops{exchange}) && defined($op->{cost})) {
+    $cost_nxt = $cost_this + $op->{cost};
+    foreach $lo1 (@{$op->{labs_lo}}) {
+      foreach $lo2 (@{$op->{labs_lo}}) {
+	next if ($lo1==$lo2);
+	if (defined($q_nxt = cost2state($cost_nxt))) {
+	  $qid1 = key2state("EXCHANGE:q=$qid,lo1=$lo1,lo2=$lo2",0);
+	  add_editor_path($fsm, $qid,  $qid1,  $lo1,$lo2, $op->{cost}, 1);
+	  add_editor_path($fsm, $qid1, $q_nxt, $lo2,$lo1, 0,           1);
 	  $populate_queue{$q_nxt}=$cost_nxt;
 	}
       }
@@ -286,6 +350,9 @@ gfsm-make-editor.perl - make a Fischer-Wagner style editor FST
   -cost-insert COST         # default=1
   -cost-delete COST         # default=1
   -cost-subst  COST         # default=1
+  -cost-double COST         # default=none
+  -cost-undouble COST       # default=none
+  -cost-exchange COST       # default=none
 
  Editor Topology Options:
   -max-cost    COST         # maximum path cost (default: none)
@@ -297,6 +364,9 @@ gfsm-make-editor.perl - make a Fischer-Wagner style editor FST
   -no-subst                 # don't generate substitution arcs
   -no-insert                # don't generate insertion arcs
   -no-delete                # don't generate deletion arcs
+  -no-double                # don't generate label-doubling arcs
+  -no-undouble              # don't generate label-undoubling arcs
+  -no-exchange              # don't generate exchange arcs
 
  Operand Selection Options:
   -superclasses SCLFILE     # load lextools(1) superclass labels from SCLFILE
@@ -305,6 +375,9 @@ gfsm-make-editor.perl - make a Fischer-Wagner style editor FST
   -class-delete   CLASS     # superclass for delete input  (default='<sigma>')
   -class-subst-lo CLASS     # superclass for subst  input  (default='<sigma>')
   -class-subst-hi CLASS     # superclass for subst  output (default='<sigma>')
+  -class-double   CLASS     # superclass for double input  (default='<sigma>')
+  -class-undouble CLASS     # superclass for undouble input (default='<sigma>')
+  -class-exchange CLASS     # superclass for exchange input (default='<sigma>')
 
  I/O Options:
   -output      GFSMFILE     # output automaton
