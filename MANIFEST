@@ -13,6 +13,7 @@ Alphabet.xs
 ArcIter.xs
 Automaton.xs
 Constants.xs
+Indexed.xs
 Lookup.xs
 Paths.xs
 Semiring.xs
