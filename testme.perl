@@ -230,9 +230,14 @@ sub test_lab_str {
   ##
   $str  = $abet->labels_to_string(\@labs, 1, 0);
   print "$0: test_lab_str: lab->str(att=0): labs=(", join(' ', @labs), "); str=($str)\n";
-  ##
   $str = $abet->labels_to_string(\@labs, 1, 1);
   print "$0: test_lab_str: lab->str(att=1): labs=(", join(' ', @labs), "); str=($str)\n";
+  ##
+  my @nolabs = qw();
+  $str  = $abet->labels_to_string(\@nolabs, 1, 0);
+  print "$0: test_lab_str: lab->str(att=0): labs=(", join(' ', @nolabs), "); str=($str)\n";
+  $str = $abet->labels_to_string(\@nolabs, 1, 1);
+  print "$0: test_lab_str: lab->str(att=1): labs=(", join(' ', @nolabs), "); str=($str)\n";
 
   ##-- string -> labels
   $str  = "a b c seven";
