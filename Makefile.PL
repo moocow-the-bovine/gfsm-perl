@@ -7,9 +7,12 @@ if (system("pkg-config --atleast-version=0.0.10 gfsm") != 0) {
   die("Required module gfsm >= v0.0.10 not found!\n");
 }
 
-$GFSM_IFLAGS = join(' ', map { $s=`pkg-config --cflags-only-I $_`; chomp($s); $s } qw(gfsm glib-2.0));
-$GFSM_LDFLAGS= join(' ', map { $s=`pkg-config --libs-only-L $_`; chomp($s); $s } qw(gfsm glib-2.0));
-$GFSM_LIBS   = join(' ', map { $s=`pkg-config --libs-only-l $_`; chomp($s); $s } qw(gfsm glib-2.0));
+##-- @pthread_flags: flag(s) for pthread (added to both CPPFLAGS and LIBS)
+#my @pthread_flags = ('-pthread');
+my @pthread_flags = qw();
+$GFSM_IFLAGS = join(' ', @pthread_flags, map { $s=`pkg-config --cflags-only-I $_`; chomp($s); $s } qw(gfsm glib-2.0));
+$GFSM_LDFLAGS= join(' ',                 map { $s=`pkg-config --libs-only-L $_`; chomp($s); $s } qw(gfsm glib-2.0));
+$GFSM_LIBS   = join(' ', @pthread_flags, map { $s=`pkg-config --libs-only-l $_`; chomp($s); $s } qw(gfsm glib-2.0));
 
 ##----------------------------------------------------------------------
 ## MAIN
@@ -18,7 +21,7 @@ WriteMakefile
   (
    NAME		=> 'Gfsm',
    DISTNAME	=> 'gfsm-perl',
-   AUTHOR       => 'Bryan Jurish <moocow@ling.uni-potsdam.de>',
+   AUTHOR       => 'Bryan Jurish <jurish@uni-potsdam.de>',
    ABSTRACT	=> 'Perl interface to libgfsm finite-state library',
    VERSION_FROM	=> 'Gfsm.pm',
 
