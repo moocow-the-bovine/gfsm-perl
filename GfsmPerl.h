@@ -19,8 +19,35 @@
 /*======================================================================
  * Memory Stuff
  */
-extern GMemVTable gfsm_perl_vtable;
 
+//-- GFSM_PERL_THREADS: if defined, use a mutex in all memory operations (doesn't work)
+#undef GFSM_PERL_THREADS
+//#define GFSM_PERL_THREADS
+
+#ifdef GFSM_PERL_THREADS
+# include "thread.h"
+# define GFSM_PERL_USE_VTABLE 1
+#endif
+
+//-- GFSM_PERL_USE_VTABLE: if defined, make glib use perl memory management functions
+#define GFSM_PERL_USE_VTABLE
+
+//-- memory stuff: threads (broken)
+#ifdef GFSM_PERL_THREADS
+ extern perl_mutex gfsm_perl_mutex;
+# define GFSM_PERL_LOCK   MUTEX_LOCK(&gfsm_perl_mutex)
+# define GFSM_PERL_UNLOCK MUTEX_UNLOCK(&gfsm_perl_mutex)
+#else
+# define GFSM_PERL_LOCK
+# define GFSM_PERL_UNLOCK
+#endif
+
+//-- memory stuff: vtable (seems to work)
+#ifdef GFSM_PERL_USE_VTABLE
+ extern GMemVTable gfsm_perl_vtable;
+#endif
+
+void gfsm_perl_init(void);
 gpointer gfsm_perl_malloc(gsize n_bytes);
 gpointer gfsm_perl_realloc(gpointer mem, gsize n_bytes);
 void gfsm_perl_free(gpointer mem);
@@ -28,6 +55,7 @@ void gfsm_perl_free(gpointer mem);
 AV *gfsm_perl_paths_to_av(gfsmSet *paths_s);
 HV *gfsm_perl_path_to_hv(gfsmPath *path);
 AV *gfsm_perl_ptr_array_to_av_uv(GPtrArray *ary);
+
 
 /*======================================================================
  * Weight stuff

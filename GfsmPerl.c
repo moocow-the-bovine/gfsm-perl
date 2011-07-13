@@ -7,7 +7,14 @@
 /*======================================================================
  * Memory Stuff
  */
-GMemVTable gfsm_perl_vtable =
+
+//-- threads
+#ifdef GFSM_PERL_THREADS
+ perl_mutex gfsm_perl_mutex;
+#endif
+
+#ifdef GFSM_PERL_USE_VTABLE
+ GMemVTable gfsm_perl_vtable =
   {
     gfsm_perl_malloc,
     gfsm_perl_realloc,
@@ -16,23 +23,41 @@ GMemVTable gfsm_perl_vtable =
     NULL,
     NULL
   };
+#endif
+
+void gfsm_perl_init(void)
+{
+#ifdef GFSM_PERL_THREADS
+   MUTEX_INIT(&gfsm_perl_mutex);
+#endif
+#ifdef GFSM_PERL_USE_VTABLE
+   g_mem_set_vtable(&gfsm_perl_vtable);
+#endif
+   //gfsm_allocators_enable();
+}
 
 gpointer gfsm_perl_malloc(gsize n_bytes)
 {
   gpointer ptr=NULL;
+  GFSM_PERL_LOCK;
   Newc(0, ptr, n_bytes, char, gpointer);
+  GFSM_PERL_UNLOCK;
   return ptr;
 }
 
 gpointer gfsm_perl_realloc(gpointer mem, gsize n_bytes)
 {
+  GFSM_PERL_LOCK;
   Renewc(mem, n_bytes, char, gpointer);
+  GFSM_PERL_UNLOCK;
   return mem;
 }
 
 void gfsm_perl_free(gpointer mem)
 {
+  GFSM_PERL_LOCK;
   Safefree(mem);
+  GFSM_PERL_UNLOCK;
 }
 
 

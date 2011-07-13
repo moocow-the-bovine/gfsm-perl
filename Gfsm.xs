@@ -3,6 +3,7 @@
 #include "perl.h"
 #include "XSUB.h"
 #include "ppport.h"
+#include "thread.h"
 
 #include <gfsm.h>
 #include "GfsmPerl.h"
@@ -14,9 +15,7 @@ MODULE = Gfsm		PACKAGE = Gfsm
 ##=====================================================================
 BOOT:
  {
-   g_mem_set_vtable(&gfsm_perl_vtable);
-   //gfsm_allocators_enable();
-   ;
+   gfsm_perl_init();
  } 
 
 ##=====================================================================
