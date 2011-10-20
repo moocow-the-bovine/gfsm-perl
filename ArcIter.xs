@@ -14,7 +14,7 @@ PROTOTYPES: DISABLE
 gfsmArcIter *
 new(char *CLASS, gfsmAutomaton *fsm=NULL, gfsmStateId stateid=gfsmNoState)
 CODE:
- RETVAL = g_new(gfsmArcIter,1);
+ RETVAL = gfsm_slice_new(gfsmArcIter);
  if (fsm && stateid != gfsmNoState) { gfsm_arciter_open(RETVAL, fsm, stateid); }
  else                               { gfsm_arciter_close(RETVAL); }
 OUTPUT:
@@ -39,7 +39,7 @@ DESTROY(gfsmArcIter *ai)
 CODE:
  if (ai) {
    gfsm_arciter_close(ai);
-   g_free(ai);
+   gfsm_slice_free(gfsmArcIter,ai);
  }
 
 

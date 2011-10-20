@@ -128,7 +128,7 @@ gfsmUserAlphabetMethods gfsm_perl_alphabet_methods =
  */
 gfsmAlphabet *gfsm_perl_alphabet_new(void)
 {
-  gfsmPerlAlphabet *alph = g_new0(gfsmPerlAlphabet,1);
+  gfsmPerlAlphabet *alph = gfsm_slice_new0(gfsmPerlAlphabet);
   ((gfsmAlphabet*)alph)->type = gfsmATUser;
   alph->hv = newHV();
   alph->av = newAV();
@@ -142,7 +142,9 @@ void gfsm_perl_alphabet_free(gfsmPerlAlphabet *alph)
 {
   AV *av = alph->av;
   HV *hv = alph->hv;
-  gfsm_alphabet_free((gfsmAlphabet*)alph);
+  g_ptr_array_free(((gfsmPointerAlphabet*)alph)->labels2keys,TRUE);
+  g_hash_table_destroy(((gfsmPointerAlphabet*)alph)->keys2labels);
+  gfsm_slice_free(gfsmPerlAlphabet,alph);
   av_undef(av);
   hv_undef(hv);
 }
@@ -334,7 +336,7 @@ void gfsm_perl_alphabet_scalar_write(gfsmPerlAlphabet *alph, SV *sv, GString *gs
  */
 gfsmIOHandle *gfsmperl_io_new_sv(SV *sv, size_t pos)
 {
-  gfsmPerlSVHandle *svh = g_new(gfsmPerlSVHandle,1);
+  gfsmPerlSVHandle *svh = gfsm_slice_new(gfsmPerlSVHandle);
   gfsmIOHandle *ioh = gfsmio_handle_new(gfsmIOTUser,svh);
 
   SvUTF8_off(sv); //-- unset UTF8 flag for this SV*
@@ -352,7 +354,7 @@ gfsmIOHandle *gfsmperl_io_new_sv(SV *sv, size_t pos)
 void gfsmperl_io_free_sv(gfsmIOHandle *ioh)
 {
   gfsmPerlSVHandle *svh = (gfsmPerlSVHandle*)ioh->handle;
-  g_free(svh);
+  gfsm_slice_free(gfsmPerlSVHandle,svh);
   gfsmio_handle_free(ioh);
 }
 
