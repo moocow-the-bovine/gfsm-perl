@@ -21,12 +21,14 @@ our $zlevel  = -1;
 our $acceptor = 0;
 our $epsilon  = 1;
 
-our $n_states = 1;
-our $n_arcs   = 1;
-our $n_labels = 2;
-our $n_finals = 1;
+our $n_states = 8; ##-- advisory only
+our $n_labels = 2; ##-- including epsilon, if specified
+
 our $w_min = 0;
 our $w_max = 0;
+
+our $d_min = 0;
+our $d_max = 8;
 
 our $seed = undef;
 
@@ -40,13 +42,17 @@ GetOptions(##-- General
 	   'seed|srand|r=i'  => \$seed,
 	   'acceptor|fsa|A!' => \$acceptor,
 	   'transducer|fst|T!' => sub { $acceptor=!$_[1]; },
+
 	   'epsilon|eps|e!' => \$epsilon,
-	   'n-states|states|q=i' => \$n_states,
-	   'n-arcs|arcs|a=i' => \$n_arcs,
-	   'n-finals|finals|f=i' => \$n_finals,
+
 	   'n-labels|labels|l=i' => \$n_labels,
+	   'n-states|states|q=i' => \$n_states,
+
 	   'min-weight|wmin|w=f' => \$w_min,
 	   'max-weight|wmax|W=f' => \$w_max,
+
+	   'min-depth|dmin|d=i' => \$d_min,
+	   'max-depth|dmax|D=i' => \$d_max,
 
 	   ##-- I/O
 	   'output|o|F=s' => \$outfile,
@@ -68,29 +74,45 @@ if ($version) {
 ## Main
 srand($seed) if (defined($seed));
 
-our $fsm = Gfsm::Automaton->new();
-$fsm->is_transducer(1);
+##-- sanity checks
+die "cannot generate fsm with n_states > n_labels**max_depth"
+  if ($n_states > $n_labels**$d_max);
+
+our $fsm = Gfsm::Automaton->newTrie();
+$fsm->is_transducer(!$acceptor);
 $fsm->is_weighted(1);
 $fsm->semiring_type($Gfsm::SRTTropical);
 
-
 ##-- stupid way
 ($w_min,$w_max) = sort ($w_min,$w_max);
+our $w_rng = $w_max-$w_min;
 our $l_min = $epsilon ? 0 : 1;
 
-$fsm->add_state()
-  foreach (1..$n_states);
+##-- generate base trie
+my (@lo,@hi,$len,$q);
+while ($fsm->n_states() < $n_states) {
+  $len = $d_min+int(rand(1+$d_max-$d_min));
+  @lo = map {$l_min+int(rand($n_labels))} (1..$len);
+  $q = $fsm->add_path(\@lo, \@hi, 0);
+}
 
-$fsm->add_arc(int(rand($n_states)), int(rand($n_states)), $l_min+int(rand($n_labels)), $l_min+int(rand($n_labels)), $w_min+($w_min==$w_max ? 0 : rand($w_max-$w_min)))
-  foreach (1..$n_arcs);
+##-- setup weights & upper arc labels
+my $ai = Gfsm::ArcIter->new();
+if ($w_min!=0 || $w_max!=0 || !$acceptor) {
+  for ($q=0; $q < $fsm->n_states(); ++$q) {
+    $fsm->final_weight($q,$w_min+($w_rng>0 ? rand($w_rng) : 0)) if ($fsm->is_final($q));
+    for ($ai->open($fsm,$q); $ai->ok(); $ai->next()) {
+      $ai->weight($w_min+($w_rng>0 ? rand($w_rng) : 0));
+      $ai->upper($l_min+int(rand($n_labels))) if (!$acceptor);
+    }
+  }
+}
 
-$fsm->final_weight(int(rand($n_states)), $w_min+($w_min==$w_max ? 0 : rand($w_max-$w_min)))
-  foreach (1..$n_finals);
 
-$fsm->root(0) if ($n_states);
-$fsm->_project(Gfsm::LSLower()) if ($acceptor);
 
-##-- save
+#$fsm->renumber_states();
+
+##-- dump
 $fsm->save($outfile,$zlevel)
   or die("$prog: save failed to gfsm file '$outfile': $!");
 
@@ -105,25 +127,26 @@ __END__
 
 =head1 NAME
 
-gfsm-random-fsm.perl - create a random FST
+gfsm-random-trie.perl - create a random trie
 
 =head1 SYNOPSIS
 
- gfsm-random-fsm.perl [OPTIONS]
+ gfsm-random-trie.perl [OPTIONS]
 
  General Options:
   -help
   -version
 
  Topology Options:
+  -seed SEED                # random seed (default: none)
   -acceptor , -transducer   # build FSA or FST (default=-transducer)
-  -epsilon  , -noepsilon    # do/don't include epsilon labels (default=do)
-  -n-states=N               # number of states
-  -n-arcs=N                 # number of arcs
-  -n-finals=N               # number of final states
-  -n-labels=N               # number of labels
+  -epsilon  , -noepsilon    # do/don't include epsilon labels (default=-epsilon)
+  -n-labels=N               # alphabet size (default=2)
+  -n-states=N               # minimum number of states (default=8)
   -min-weight=W             # minimum weight (default=0)
   -max-weight=W             # maximum weight (default=0)
+  -min-depth=DEPTH          # minimum successful path length (default=0)
+  -max-depth=DEPTH          # maximum successful path length (default=8)
 
  I/O Options:
   -zlevel=ZLEVEL            # zlib compression level
