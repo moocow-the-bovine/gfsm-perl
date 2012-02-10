@@ -30,7 +30,8 @@
 #endif
 
 //-- GFSM_PERL_USE_VTABLE: if defined, make glib use perl memory management functions
-#define GFSM_PERL_USE_VTABLE
+#undef GFSM_PERL_USE_VTABLE
+//#define GFSM_PERL_USE_VTABLE
 
 //-- memory stuff: threads (broken)
 #ifdef GFSM_PERL_THREADS
