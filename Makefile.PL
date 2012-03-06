@@ -76,6 +76,7 @@ sub MY::depend {
 		   ." Paths.xs"
 		   ." Trie.xs"
 		   ." Indexed.xs"
+		   ." StateSort.xs"
 		  )
 		 ."\n\n"
 		 ##-- c->o dependencies

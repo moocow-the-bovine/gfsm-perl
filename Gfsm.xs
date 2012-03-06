@@ -62,6 +62,7 @@ INCLUDE: Arith.xs
 INCLUDE: Lookup.xs
 INCLUDE: Paths.xs
 INCLUDE: Trie.xs
+INCLUDE: StateSort.xs
 
 ##=====================================================================
 ## Gfsm::Automaton::Indexed

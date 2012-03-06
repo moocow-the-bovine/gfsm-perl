@@ -452,6 +452,9 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  $w    = $fsm->final_weight($id,?$w);     # get/set final weight for state $id
 
  $fsm->renumber_states();                 # close gaps in stateid numbering
+ $fsm->statesort_aff();			  # ... same thing
+ $fsm->statesort_dfs();			  # depth-first state sort
+ $fsm->statesort_bfs();			  # breadth-first state sort
 
  ##------------------------------------------------------------
  ## Accessors/Manipulators: Arcs
