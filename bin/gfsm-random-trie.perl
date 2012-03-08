@@ -158,10 +158,12 @@ gen_spine();
 ## (\@qpaths,$maxdepth) = qpaths($fsm); ##-- list context
 ##  + s.t. $qpaths->[$q] = pack('L*', $q0,$q1,...,$q)
 ##  + gets state "addresses"; used to generate guaranteed cyclic arcs
-sub qpaths {
+
+*qpaths = \&qpaths_v0;
+sub qpaths_v0 {
   ##-- init qpaths()
   my $fsm = shift;
-  my $qpaths = [];
+  my $qpaths = [''];
   my $rfsm = $fsm->reverse();
   my $ai = Gfsm::ArcIter->new();
   my ($ri,@p,$q);
@@ -172,7 +174,7 @@ sub qpaths {
       unshift(@p,($q=$ai->target));
     }
     $dmax = $#p if ($#p >= $dmax);
-    foreach $ri (0..$#p) {
+    foreach $ri (1..$#p) {
       $q = $p[$ri];
       next if (defined($qpaths->[$q]));
       $qpaths->[$q] = pack('L*', @p[0..$ri]);
@@ -180,6 +182,29 @@ sub qpaths {
   }
   return wantarray ? ($qpaths,$dmax) : $qpaths;
 }
+
+*qpaths = \&qpaths_v1;
+sub qpaths_v1 {
+  ##-- init qpaths(), using arcpaths() function
+  my $fsm = shift;
+  my $qpaths = [''];
+  my $apaths = $fsm->arcpaths();
+  my ($ap,@qp,$qi);
+  my $dmax = 0;
+  my $arc_ignore_size = $Gfsm::arc_size - length(pack('LL',0,0));
+  foreach $ap (@$apaths) {
+    #@qp = (0,map {$_->[1]} Gfsm::unpack_arcpath($ap)); ##-- [src,dst,lo,hi,w],...
+    @qp = (0,unpack("(x4Lx${arc_ignore_size})*", $ap));
+    pop(@qp);
+    $dmax = $#qp if ($#qp >= $dmax);
+    foreach $qi (1..$#qp) {
+      next if (defined($qpaths->[$qp[$qi]]));
+      $qpaths->[$qp[$qi]] = pack('L*', @qp[0..$qi]);
+    }
+  }
+  return wantarray ? ($qpaths,$dmax) : $qpaths;
+}
+
 
 ##--------------------------------------------------------------
 ##-- introduce cycles
@@ -304,7 +329,7 @@ gfsm-random-trie.perl - create a random trie-based FSM
   -max-depth=DMAX           # maximum successful path length (default=8)
   -n-xarcs=N                # number of guaranteed non-cyclic arcs added to skeleton (default=0)
   -n-carcs=N                # number of guaranteed cyclic arcs added to skeleton (default=0)
-  -n-uarcs=N                # number of random arcs added to skeleton (default=0)
+  -n-uarcs=N                # number of unrestricted random arcs added to skeleton (default=0)
   -min-cycle-length=YMIN    # minimum cycle length (default=0)
   -max-cycle-length=YMAX    # maximum cycle length (default=MAX_DEPTH)
 
