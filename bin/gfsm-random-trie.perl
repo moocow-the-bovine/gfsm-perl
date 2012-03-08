@@ -37,6 +37,7 @@ our $cl_min    = 1;     ##-- minimum cycle length (including cyclic arc; should 
 our $cl_max    = undef; ##-- maximum cycle length (default=$d_max+1)
 
 our $seed = undef;
+our $sort = 'none'; ##-- state-sort mode (pre -xarcs)
 
 ##======================================================================
 ## Command-Line
@@ -59,6 +60,10 @@ GetOptions(##-- General
 
 	   'min-depth|dmin|d=i' => \$d_min,
 	   'max-depth|dmax|D=i' => \$d_max,
+
+	   'breadth-first-sort|bfs' => sub { $sort='bfs' },
+	   'depth-first-sort|dfs'   => sub { $sort='dfs' },
+	   'no-sort|nosort|ns' => sub { $sort='none' },
 
 	   'n-xarcs|xarcs|xa|x=i' => \$n_xarcs,
 	   'n-carcs|carcs|ca|c|n-cycles|ncycles=i' => \$n_carcs,
@@ -149,6 +154,14 @@ sub gen_spine {
   ##-- mark unsorted (avoid "smart" arc insertion)
   $fsm->sort_mode(Gfsm::ASMNone());
   $nq = $fsm->n_states();
+
+  ##-- maybe sort
+  $sort = '' if (!defined($sort));
+  if ($sort eq 'bfs') {
+    $fsm->statesort_bfs();
+  } elsif ($sort eq 'dfs') {
+    $fsm->statesort_dfs();
+  }
 }
 gen_spine();
 
@@ -159,7 +172,7 @@ gen_spine();
 ##  + s.t. $qpaths->[$q] = pack('L*', $q0,$q1,...,$q)
 ##  + gets state "addresses"; used to generate guaranteed cyclic arcs
 
-*qpaths = \&qpaths_v0;
+#*qpaths = \&qpaths_v0;
 sub qpaths_v0 {
   ##-- init qpaths()
   my $fsm = shift;
@@ -320,18 +333,19 @@ gfsm-random-trie.perl - create a random trie-based FSM
  Topology Options:
   -seed SEED                # random seed (default: none)
   -acceptor , -transducer   # build FSA or FST (default=-transducer)
-  -epsilon  , -noepsilon    # do/don't include epsilon labels (default=-epsilon)
-  -n-labels=N               # alphabet size (default=2)
-  -n-states=N               # minimum number of states (default=8)
+  -epsilon  , -noepsilon    # do/don't include epsilon (zero) labels (default=-epsilon)
+  -n-labels=NA              # alphabet size (default=2)
+  -n-states=NQ              # target number of states (default=8; output is s.t. NQ <= |Q| < NQ+DMAX)
   -min-weight=W             # minimum weight (default=0)
   -max-weight=W             # maximum weight (default=0)
-  -min-depth=DMIN           # minimum successful path length (default=0)
-  -max-depth=DMAX           # maximum successful path length (default=8)
-  -n-xarcs=N                # number of guaranteed non-cyclic arcs added to skeleton (default=0)
-  -n-carcs=N                # number of guaranteed cyclic arcs added to skeleton (default=0)
-  -n-uarcs=N                # number of unrestricted random arcs added to skeleton (default=0)
-  -min-cycle-length=YMIN    # minimum cycle length (default=0)
-  -max-cycle-length=YMAX    # maximum cycle length (default=MAX_DEPTH)
+  -min-depth=DMIN           # minimum spine path length (default=0)
+  -max-depth=DMAX           # maximum spine path length (default=8)
+  -bfs , -dfs , -nosort     # state-sort to apply before adding arcs (default:-nosort)
+  -n-xarcs=N                # number of guaranteed acyclic arcs added to spine (default=0)
+  -n-carcs=N                # number of guaranteed  cyclic arcs added to spine (default=0)
+  -n-uarcs=N                # number of unrestricted random arcs added to spine (default=0)
+  -min-cycle-length=YMIN    # minimum cycle length for guaranteed cyclic arcs (default=0)
+  -max-cycle-length=YMAX    # maximum cycle length for guaranteed cyclic arcs (default=DMAX)
 
  I/O Options:
   -zlevel=ZLEVEL            # zlib compression level
