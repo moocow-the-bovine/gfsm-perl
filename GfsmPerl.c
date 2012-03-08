@@ -62,6 +62,9 @@ void gfsm_perl_free(gpointer mem)
 
 
 
+/*======================================================================
+ * Paths
+ */
 
 AV *gfsm_perl_paths_to_av(gfsmSet *paths_s)
 {
@@ -104,6 +107,41 @@ AV *gfsm_perl_ptr_array_to_av_uv(GPtrArray *ary)
   }
   sv_2mortal((SV*)av);
   return av;
+}
+
+/*======================================================================
+ * ArcPaths
+ */
+
+AV *gfsm_perl_arcpaths_to_av(GSList *arcpaths)
+{
+  AV *RETVAL = newAV();
+
+  for (; arcpaths != NULL; arcpaths=arcpaths->next) {
+    gfsmArcPath *ap = (gfsmArcPath*)arcpaths->data;
+    SV *sv = gfsm_perl_arcpath_to_sv(ap);
+    av_push(RETVAL, sv);
+  }
+
+  sv_2mortal((SV*)RETVAL);  
+  return RETVAL;
+}
+
+SV *gfsm_perl_arcpath_to_sv(gfsmArcPath *ap)
+{
+  SV *sv = newSV( ap->len*sizeof(gfsmArc) );
+  sv_setpvn(sv,"",0);
+  guint i;
+  for (i=0; i < (ap->len-1); ++i) {
+    sv_catpvn(sv, ap->pdata[i], sizeof(gfsmArc));
+  }
+  if (ap->len>0) {
+    gfsmArc a = { gfsmNoState,gfsmNoState, gfsmNoLabel,gfsmNoLabel, gfsmNoWeight };
+    a.weight = gfsm_ptr2weight(ap->pdata[ap->len-1]);
+    sv_catpvn(sv, (char*)&a, sizeof(gfsmArc));
+  }
+  //sv_2mortal(sv);
+  return sv;
 }
 
 /*======================================================================

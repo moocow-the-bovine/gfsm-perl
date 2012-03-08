@@ -251,7 +251,7 @@ sub test_lab_str {
   print STDERR "$0: test_lab_str() done.\n";
   exit(0);
 }
-test_lab_str();
+#test_lab_str();
 
 
 ##--------------------------------------------------------------
@@ -384,7 +384,7 @@ sub utf8abet {
     warn("bad labels $labu/$labu2 for '$wutf8'");
   }
 }
-utf8abet();
+#utf8abet();
 
 sub obj_abet {
   $a = Gfsm::Alphabet->new();
@@ -426,6 +426,16 @@ sub obj_basic_hv {
 #obj_basic_hv();
 
 
+##--------------------------------------------------------------
+## test: arcpaths
+
+sub test_arcpaths {
+  my $fsm = Gfsm::Automaton->new;
+  $fsm->compile("arcpaths.tfst");
+  my $aps = $fsm->arcpaths();
+  print "arcpaths=$aps\n";
+}
+test_arcpaths();
 
 ##--------------------------------------------------------------
 ## MAIN

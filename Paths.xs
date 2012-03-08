@@ -28,7 +28,18 @@ CODE:
 OUTPUT:
  RETVAL
 
-
+##--------------------------------------------------------------
+## automaton arc-paths (hash-refs, aligned)
+AV *
+arcpaths(gfsmAutomaton *fsm)
+PREINIT:
+ GSList *arcpaths=NULL;
+CODE:
+ arcpaths = gfsm_automaton_arcpaths(fsm);
+ RETVAL   = gfsm_perl_arcpaths_to_av(arcpaths);
+ gfsm_arcpath_list_free(arcpaths);
+OUTPUT:
+ RETVAL
 
 ##--------------------------------------------------------------
 ## Viterbi Trellis paths

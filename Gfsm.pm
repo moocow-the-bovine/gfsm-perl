@@ -162,6 +162,42 @@ $EXPORT_TAGS{labelsides} = [
 			   ];
 
 ##======================================================================
+## Utilities: arcpaths
+##======================================================================
+
+## $fmt = $Gfsm::arc_packas
+our $arc_packas = 'LLSSf';
+
+## $nbytes = $Gfsm::arc_size
+our $arc_size = length(pack($arc_packas,0,0,0,0,0));
+
+## ($src,$dst,$lo,$hi,$w) = Gfsm::unpack_arc($arc_packed)
+sub unpack_arc {
+  return unpack($arc_packas,$_[0]);
+}
+
+## $arc_packed = Gfsm::pack_arc($src,$dst,$lo,$hi,$w)
+sub pack_arc {
+  return pack($arc_packas,@_);
+}
+
+## @arcs_packed = unpack_arcpath($arcpath_packed)
+sub unpack_arcpath {
+  return map {[unpack($arc_packas,$_)]} unpack("(a${arc_size})*", $_[0]);
+}
+
+## @arcs_packed = pack_arcpath([$src,$dst,$lo,$hi,$w],...)
+sub pack_arcpath {
+  return pack("($arc_packas)*", map {ref($_) ? @$_: $_} @_);
+}
+
+$EXPORT_TAGS{pack} = [
+		      qw($arc_packas $arc_size),
+		      qw(unpack_arc pack_arc),
+		      qw(unpack_arcpath pack_arcpath),
+		     ];
+
+##======================================================================
 ## Exports: finish
 ##======================================================================
 our @EXPORT_OK = map { @$_ } values(%EXPORT_TAGS);

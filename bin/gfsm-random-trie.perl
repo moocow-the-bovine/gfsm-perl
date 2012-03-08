@@ -31,7 +31,8 @@ our $d_min = 0;
 our $d_max = 8;
 
 our $n_xarcs  = 0; ##-- number of cross-arcs (non-cyclic)
-our $n_cycles = 0; ##-- number of cycles
+our $n_carcs  = 0; ##-- number of cyclic arcs
+our $n_uarcs  = 0; ##-- number of random arcs (cyclic or non-cyclic)
 our $cl_min    = 1;     ##-- minimum cycle length (including cyclic arc; should be >= 1)
 our $cl_max    = undef; ##-- maximum cycle length (default=$d_max+1)
 
@@ -59,8 +60,9 @@ GetOptions(##-- General
 	   'min-depth|dmin|d=i' => \$d_min,
 	   'max-depth|dmax|D=i' => \$d_max,
 
-	   'n-xarcs|xarcs|x|a=i' => \$n_xarcs,
-	   'n-cycles|cycles|c=i' => \$n_cycles,
+	   'n-xarcs|xarcs|xa|x=i' => \$n_xarcs,
+	   'n-carcs|carcs|ca|c|n-cycles|ncycles=i' => \$n_carcs,
+	   'n-uarcs|uarcs|ua|u|a=i' => \$n_uarcs,
 	   'min-cycle-length|clmin|y=i'  => \$cl_min,
 	   'max-cycle-length|clmax|Y=i'  => \$cl_max,
 
@@ -79,86 +81,177 @@ if ($version) {
   exit(0);
 }
 
+##======================================================================
+## Subs
+
+##--------------------------------------------------------------
+## $n = max_trie_states($n_labels, $depth_max)
+sub max_trie_states {
+  my ($na,$dmax) = @_;
+  ##-- loop form
+  ## : $n_labels==2 --> 0:1 1:3 2:7 3:15 4:31 5:63 6:127 7:255 8:511 9:1023 10:2047
+  ## : $n_labels==3 --> 0:1 1:4 2:13 3:40 4:121 5:364 6:1093 7:3280 8:9841 9:29524 10:88573
+  ## : $n_labels==4 --> 0:1 1:5 2:21 3:85 4:341 5:1365 6:5461 7:21845 8:87381 9:349525 10:1398101
+  if (0) {
+    my $nq = 0;
+    foreach (0..$dmax) {
+      $nq += $na**$_;
+    }
+    return $nq;
+  }
+  ##-- closed form; see e.g.:
+  ##     http://mathworld.wolfram.com/Repunit.html
+  ##     http://oeis.org/A000225 ($n_labels==2)
+  ##     http://oeis.org/A003462 ($n_labels==3)
+  ##     http://oeis.org/A002450 ($n_labels==4)
+  ##     http://mathworld.wolfram.com/MersenneNumber.html ($n_labels==2)
+  return ($na**($dmax+1)-1)/($na-1);
+}
 
 ##======================================================================
 ## Main
-srand($seed) if (defined($seed));
 
-##-- sanity checks
-die "cannot generate fsm with n_states > n_labels**max_depth"
-  if ($n_states > $n_labels**$d_max);
 
-our $fsm = Gfsm::Automaton->newTrie();
-$fsm->is_transducer(!$acceptor);
-$fsm->is_weighted(1);
-$fsm->semiring_type($Gfsm::SRTTropical);
+##--------------------------------------------------------------
+our ($fsm,$l_min,$q);
+sub init_fsm {
+  srand($seed) if (defined($seed));
 
-##-- not quite so stupid way
-($w_min,$w_max) = sort ($w_min,$w_max);
-our $w_rng = $w_max-$w_min;
-our $l_min = $epsilon ? 0 : 1;
-
-##-- generate base trie
-my (@lo,@hi,$len,$q);
-while ($fsm->n_states() < $n_states) {
-  $len = $d_min+int(rand(1+$d_max-$d_min));
-  @lo = map {$l_min+int(rand($n_labels))} (1..$len);
-  $q = $fsm->add_path(\@lo, \@hi, 0);
-}
-
-##-- mark unsorted (avoid "smart" arc insertion)
-$fsm->sort_mode(Gfsm::ASMNone());
-our $nq = $fsm->n_states();
-
-## ($qpath,$lpath) = qpaths($q)   ##-- list context
-##  $qpath         = qpaths($q)   ##-- scalar context
-##  +  returns paths to $q in trie as:
-##      $qpath = [$q0,$q1,...,$q ]
-##      $lpath = [    $l1,...,$lN]
-our $rfsm = $fsm->reverse();
-my $qpai = Gfsm::ArcIter->new();
-*qpath = \&qpaths;
-sub qpaths {
-  my $q = shift;
-  my ($qp,$lp) = ([$q],[]);
-  my $r = $q;
-  while ($r != 0) {
-    $qpai->open($rfsm,$r);
-    $r = $qpai->target;
-    push(@$qp,$r);
-    push(@$lp,$qpai->lower);
+  ##-- sanity checks
+  my $nq_max = max_trie_states($n_labels,$d_max);
+  if ($n_states > $nq_max) {
+    warn("$prog: cannot generate fsm with n_states > M_{d_max+1}^(n_labels) = (n_labels^(d_max+1)-1)/(n_labels-1); setting -n-states=$nq_max\n");
+    $n_states = $nq_max;
   }
-  @$qp = reverse @$qp;
-  @$lp = reverse @$lp;
-  return wantarray ? ($qp,$lp) : $qp;
+
+  $fsm = Gfsm::Automaton->newTrie();
+  $fsm->is_transducer(!$acceptor);
+  $fsm->is_weighted(1);
+  $fsm->semiring_type($Gfsm::SRTTropical);
+
+  $l_min = $epsilon ? 0 : 1;
+}
+init_fsm();
+
+##--------------------------------------------------------------
+our $finals = {}; ##-- $qid => undef
+our ($nq);
+sub gen_spine {
+  ##-- generate base trie
+  my (@lo,@hi,$len,$q);
+  while ($fsm->n_states() < $n_states) {
+    $len = $d_min+int(rand(1+$d_max-$d_min));
+    @lo = map {$l_min+int(rand($n_labels))} (1..$len);
+    $q = $fsm->add_path(\@lo, \@hi, 0);
+    $finals->{$q} = undef;
+  }
+
+  ##-- mark unsorted (avoid "smart" arc insertion)
+  $fsm->sort_mode(Gfsm::ASMNone());
+  $nq = $fsm->n_states();
+}
+gen_spine();
+
+
+##--------------------------------------------------------------
+## \@qpaths = qpaths($fsm);  ##-- scalar context
+## (\@qpaths,$maxdepth) = qpaths($fsm); ##-- list context
+##  + s.t. $qpaths->[$q] = pack('L*', $q0,$q1,...,$q)
+##  + gets state "addresses"; used to generate guaranteed cyclic arcs
+sub qpaths {
+  ##-- init qpaths()
+  my $fsm = shift;
+  my $qpaths = [];
+  my $rfsm = $fsm->reverse();
+  my $ai = Gfsm::ArcIter->new();
+  my ($ri,@p,$q);
+  my $dmax = 0;
+  foreach $q (keys %$finals) {
+    @p = ($q);
+    for ($ai->open($rfsm,$q); $q != 0; $ai->open($rfsm,$q)) {
+      unshift(@p,($q=$ai->target));
+    }
+    $dmax = $#p if ($#p >= $dmax);
+    foreach $ri (0..$#p) {
+      $q = $p[$ri];
+      next if (defined($qpaths->[$q]));
+      $qpaths->[$q] = pack('L*', @p[0..$ri]);
+    }
+  }
+  return wantarray ? ($qpaths,$dmax) : $qpaths;
 }
 
+##--------------------------------------------------------------
 ##-- introduce cycles
-$cl_min = 1        if ($cl_min <= 0);
-$cl_max = $d_max+1 if (!defined($cl_max) || $cl_max<=0);
-for (my $nc=0; $nc<$n_cycles; ) {
-  $q  = int(rand($nq));
-  $qp = qpath($q);
-  $qpi_max = @$qp-$cl_min;                       ##-- potential cycle-target states r with len(r-*->q)+1 >= min_cycle_len
-  $qpi_min = @$qp>$cl_max ? (@$qp-$cl_max) : 0;  ##-- potential cycle-target states r with len(r-*->q)+1 <= max_cycle_len
-  next if ($qpi_min > $qpi_max);                 ##-- potential infloop!
-  $r = $qp->[$qpi_min+int(rand(1+$qpi_max-$qpi_min))];
-  $a = $l_min+int(rand($n_labels));
-  $fsm->add_arc($q,$r, $a,$a,0);
-  ++$nc;
+sub gen_cycles {
+  return if ($n_carcs <= 0);
+  $cl_min = 1        if ($cl_min <= 0);
+  $cl_max = $d_max+1 if (!defined($cl_max) || $cl_max<=0);
+  my ($qpaths,$dmax) = qpaths($fsm);
+  if ($cl_min >= ($dmax+1)) {
+    warn("$prog: requested minimum cycle length $cl_min too large for spine with depth $dmax, using -clmin=".($dmax+1));
+    $cl_min = $dmax+1;
+  }
+  my ($nc, $q,@qp,$qpi_max,$qpi_min, $r,$a);
+  for ($nc=0; $nc<$n_carcs; ) {
+    $q  = int(rand($nq));
+    @qp = unpack('L*',$qpaths->[$q]);
+    $qpi_max = @qp-$cl_min;                       ##-- potential cycle-target states r with len(r-*->q)+1 >= min_cycle_len
+    $qpi_min = @qp>$cl_max ? (@qp-$cl_max) : 0;   ##-- potential cycle-target states r with len(r-*->q)+1 <= max_cycle_len
+    next if ($qpi_min > $qpi_max);                ##-- potential infloop!
+    $r = $qp[$qpi_min+int(rand(1+$qpi_max-$qpi_min))];
+    $a = $l_min+int(rand($n_labels));
+    $fsm->add_arc($q,$r, $a,$a,0);
+    ++$nc;
+  }
 }
+gen_cycles();
 
+##--------------------------------------------------------------
 ##-- add non-cyclic arcs
-for ($i=0; $i<$n_xarcs; ++$i) {
-  $q = int(rand($nq-1));
-  $r = 1 + $q + int(rand($nq-$q-1));
-  $a = $l_min+int(rand($n_labels));
-  $fsm->add_arc($q,$r, $a,$a, 0);
+sub gen_xarcs {
+  for ($i=0; $i<$n_xarcs; ++$i) {
+    $q = int(rand($nq-1));
+    $r = 1 + $q + int(rand($nq-$q-1));
+    $a = $l_min+int(rand($n_labels));
+    $fsm->add_arc($q,$r, $a,$a, 0);
+  }
 }
+gen_xarcs();
 
-##-- randomize weights & upper arc labels
-my $ai = Gfsm::ArcIter->new();
-if ($w_min!=0 || $w_max!=0 || !$acceptor) {
+##--------------------------------------------------------------
+##-- add arbitrary arcs
+sub gen_uarcs {
+  for ($i=0; $i<$n_uarcs; ++$i) {
+    $q = int(rand($nq));
+    $r = int(rand($nq));
+    $a = $l_min+int(rand($n_labels));
+    $fsm->add_arc($q,$r, $a,$a, 0);
+  }
+}
+gen_uarcs();
+
+##--------------------------------------------------------------
+##-- generate upper arc labels
+sub gen_upper_labels {
+  return if ($acceptor);
+  my $ai = Gfsm::ArcIter->new();
+  for ($q=0; $q < $fsm->n_states(); ++$q) {
+    for ($ai->open($fsm,$q); $ai->ok(); $ai->next()) {
+      $ai->upper($l_min+int(rand($n_labels)));
+    }
+  }
+}
+gen_upper_labels();
+
+##--------------------------------------------------------------
+##-- generate weights
+sub gen_weights {
+  ($w_min,$w_max) = sort ($w_min,$w_max);
+  my $w_rng = $w_max-$w_min;
+  return if ($w_min==$w_max && $w_max==0);
+
+  my $ai = Gfsm::ArcIter->new();
   for ($q=0; $q < $fsm->n_states(); ++$q) {
     $fsm->final_weight($q,$w_min+($w_rng>0 ? rand($w_rng) : 0)) if ($fsm->is_final($q));
     for ($ai->open($fsm,$q); $ai->ok(); $ai->next()) {
@@ -167,10 +260,12 @@ if ($w_min!=0 || $w_max!=0 || !$acceptor) {
     }
   }
 }
-
+gen_weights();
 
 
 #$fsm->renumber_states();
+#$fsm->statesort_bfs();
+#$fsm->statesort_dfs();
 
 ##-- dump
 $fsm->save($outfile,$zlevel)
@@ -207,10 +302,11 @@ gfsm-random-trie.perl - create a random trie-based FSM
   -max-weight=W             # maximum weight (default=0)
   -min-depth=DMIN           # minimum successful path length (default=0)
   -max-depth=DMAX           # maximum successful path length (default=8)
-  -n-cycles=N               # number of cyclic arcs added to skeleton (default=0)
+  -n-xarcs=N                # number of guaranteed non-cyclic arcs added to skeleton (default=0)
+  -n-carcs=N                # number of guaranteed cyclic arcs added to skeleton (default=0)
+  -n-uarcs=N                # number of random arcs added to skeleton (default=0)
   -min-cycle-length=YMIN    # minimum cycle length (default=0)
   -max-cycle-length=YMAX    # maximum cycle length (default=MAX_DEPTH)
-  -n-xarcs=N                # number of random non-cyclic arcs added to skeleton (default=0)
 
  I/O Options:
   -zlevel=ZLEVEL            # zlib compression level

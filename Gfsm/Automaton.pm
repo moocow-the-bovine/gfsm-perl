@@ -567,10 +567,14 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
 
  ##--------------------------------------------------------------
  ## Serialization
- $paths = $fsm->paths();                  # enumerate paths (non-cyclic $fsm only!)
+ $paths = $fsm->paths();                  	# enumerate paths (non-cyclic $fsm only!)
 
  $paths = $trellis->viterbi_trellis_paths();    # enumerate Viterbi trellis paths
  $best  = $trellis->viterbi_trellis_bestpath(); # get best Viterbi trellis path
+
+ $arcpaths = $fsm->arcpaths();               	# enumerate alignments (packed)
+ @arcs = Gfsm::unpack_arcpath($arcpath);	# ... get all arcs in an arc-path
+ ($q,$r,$lo,$hi,$w) = Gfsm::unpack_arc($arc);	# ... unpack a single arc
 
  ##--------------------------------------------------------------
  ## Tries

@@ -57,6 +57,8 @@ AV *gfsm_perl_paths_to_av(gfsmSet *paths_s);
 HV *gfsm_perl_path_to_hv(gfsmPath *path);
 AV *gfsm_perl_ptr_array_to_av_uv(GPtrArray *ary);
 
+AV *gfsm_perl_arcpaths_to_av(GSList *arcpaths);
+SV *gfsm_perl_arcpath_to_sv(gfsmArcPath *ap);
 
 /*======================================================================
  * Weight stuff
