@@ -20,6 +20,7 @@ our $zlevel  = -1;
 ##-- options: topology
 our $acceptor = 0;
 our $epsilon  = 1;
+our $randomize_lo = 0;
 
 our $n_states = 8; ##-- advisory only
 our $n_labels = 2; ##-- including epsilon, if specified
@@ -49,6 +50,7 @@ GetOptions(##-- General
 	   'seed|srand|r=i'  => \$seed,
 	   'acceptor|fsa|A!' => \$acceptor,
 	   'transducer|fst|T!' => sub { $acceptor=!$_[1]; },
+	   'randomize-inputs|randomize-lower|ri|rl|i!' => \$randomize_lo,
 
 	   'epsilon|eps|e!' => \$epsilon,
 
@@ -301,6 +303,20 @@ sub gen_weights {
 gen_weights();
 
 
+
+##--------------------------------------------------------------
+##-- randomize lower arc labels
+sub randomize_lower_labels {
+  return if (!$randomize_lo);
+  my $ai = Gfsm::ArcIter->new();
+  for ($q=0; $q < $fsm->n_states(); ++$q) {
+    for ($ai->open($fsm,$q); $ai->ok(); $ai->next()) {
+      $ai->lower($l_min+int(rand($n_labels)));
+    }
+  }
+}
+randomize_lower_labels();
+
 #$fsm->renumber_states();
 #$fsm->statesort_bfs();
 #$fsm->statesort_dfs();
@@ -334,6 +350,7 @@ gfsm-random-trie.perl - create a random trie-based FSM
   -seed SEED                # random seed (default: none)
   -acceptor , -transducer   # build FSA or FST (default=-transducer)
   -epsilon  , -noepsilon    # do/don't include epsilon (zero) labels (default=-epsilon)
+  -randomize-lower          # randomize lower (input) labels (default: don't)
   -n-labels=NA              # alphabet size (default=2)
   -n-states=NQ              # target number of states (default=8; output is s.t. NQ <= |Q| < NQ+DMAX)
   -min-weight=W             # minimum weight (default=0)
