@@ -75,7 +75,7 @@ GetOptions(##-- General
 
 	   ##-- I/O
 	   'output|o|F=s' => \$outfile,
-	   'compress|zlevel|z=i' => \$zlevel,
+	   'compress|z=i' => \$zlevel,
 	  );
 
 pod2usage({-exitval=>0, -verbose=>0}) if ($help);
