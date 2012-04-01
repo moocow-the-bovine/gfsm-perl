@@ -75,7 +75,7 @@ GetOptions(##-- General
 
 	   ##-- I/O
 	   'output|o|F=s' => \$outfile,
-	   'compress|z=i' => \$zlevel,
+	   'compress|zlevel|z=i' => \$zlevel,
 	  );
 
 pod2usage({-exitval=>0, -verbose=>0}) if ($help);
@@ -365,7 +365,7 @@ gfsm-random-trie.perl - create a random trie-based FSM
   -max-cycle-length=YMAX    # maximum cycle length for guaranteed cyclic arcs (default=DMAX)
 
  I/O Options:
-  -zlevel=ZLEVEL            # zlib compression level
+  -compress=ZLEVEL          # zlib compression level
   -output=GFSMFILE          # output automaton
 
 =cut
