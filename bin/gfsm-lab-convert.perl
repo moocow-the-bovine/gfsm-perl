@@ -1,10 +1,27 @@
 #!/usr/bin/perl -w
 
 use Gfsm;
+use Getopt::Long qw(:config no_ignore_case);
 
-if (@ARGV < 3) {
-  print STDERR "Usage: $0 FST FROM_LABELS TO_LABELS [OUTFILE]\n";
-  exit 1;
+my ($help);
+my ($xlate_lo,$xlate_hi) = (1,1);
+GetOptions(
+	   'help|h' => \$help,
+	   'lower|lo|l|input|in|i|1!' => \$xlate_lo,
+	   'upper|hi|u|output|out|o|2!' => \$xlate_hi,
+	  );
+if ($help || @ARGV < 3) {
+  print STDERR <<EOF;
+
+ Usage: $0 [OPTIONS] FST FROM_LABELS TO_LABELS [OUTFILE]
+
+ Options:
+   -help        # this help message
+   -lo , -nolo  # do/don't convert lower labels (default:do)
+   -hi , -nohi  # do/don't convert upper labels (default:do)
+
+EOF
+  exit $help ? 0 : 1;
 }
 
 our $fstfile=shift;
@@ -84,8 +101,8 @@ my ($qid,$lo,$hi);
 foreach $qid (0..($fst->n_states-1)) {
   next if (!$fst->has_state($qid));
   for ($ai->open($fst,$qid); $ai->ok; $ai->next) {
-    $ai->lower( $xlate[$ai->lower] );
-    $ai->upper( $xlate[$ai->upper] );
+    $ai->lower( $xlate[$ai->lower] ) if ($xlate_lo);
+    $ai->upper( $xlate[$ai->upper] ) if ($xlate_hi);
   }
 }
 
