@@ -4,11 +4,16 @@ use Gfsm;
 use Getopt::Long qw(:config no_ignore_case);
 
 my ($help);
+my $map_verbose=1;
 my ($xlate_lo,$xlate_hi) = (1,1);
+my $zlevel = -1;
 GetOptions(
 	   'help|h' => \$help,
+	   'verbose|v!' => \$map_verbose,
+	   'quiet|q!' => sub { $map_verbose=!$_[1] },
 	   'lower|lo|l|input|in|i|1!' => \$xlate_lo,
 	   'upper|hi|u|output|out|o|2!' => \$xlate_hi,
+	   'compress|zlevel|z=i' => \$zlevel,
 	  );
 if ($help || @ARGV < 3) {
   print STDERR <<EOF;
@@ -17,8 +22,10 @@ if ($help || @ARGV < 3) {
 
  Options:
    -help        # this help message
+   -v  , -q	# do/don't complain about NoSymbol mappings (default:do)
    -lo , -nolo  # do/don't convert lower labels (default:do)
    -hi , -nohi  # do/don't convert upper labels (default:do)
+   -z LEVEL	# output compression level (default=-1)
 
 EOF
   exit $help ? 0 : 1;
@@ -70,7 +77,7 @@ foreach $key (keys(%$from2lab)) {
 
   ##-- translate other labels
   if (!defined($lab_to = $to2lab->{$key})) {
-    warn("$0: source label '$key' ($lab_from) not defined in sink file: using NoLabel!");
+    warn("$0: source label '$key' ($lab_from) not defined in sink file: using NoLabel!\n") if ($map_verbose);
     $lab_to = $Gfsm::noLabel;
   }
 
@@ -112,7 +119,7 @@ vmsg("done.\n");
 ## Main: save
 
 vmsg("$0: saving output FST... ");
-$fst->save($outfile)
+$fst->save($outfile, $zlevel)
   or die("$0: save() failed for FST to file '$outfile': $!");
 vmsg("saved.\n");
 
