@@ -4,13 +4,13 @@ use Gfsm;
 use Getopt::Long qw(:config no_ignore_case);
 
 my ($help);
-my $map_verbose=1;
+my $verbose=1;
 my ($xlate_lo,$xlate_hi) = (1,1);
 my $zlevel = -1;
 GetOptions(
 	   'help|h' => \$help,
-	   'verbose|v!' => \$map_verbose,
-	   'quiet|q!' => sub { $map_verbose=!$_[1] },
+	   'verbose|v!' => \$verbose,
+	   'quiet|q!' => sub { $verbose=!$_[1] },
 	   'lower|lo|l|input|in|i|1!' => \$xlate_lo,
 	   'upper|hi|u|output|out|o|2!' => \$xlate_hi,
 	   'compress|zlevel|z=i' => \$zlevel,
@@ -38,7 +38,7 @@ our $outfile = @ARGV ? shift(@ARGV) : '-';
 
 ##======================================================================
 ## Subs: messages
-sub vmsg   { print STDERR @_; }
+sub vmsg   { print STDERR @_ if ($verbose); }
 sub vmsg1  { print STDERR "$0: ", @_, "\n"; }
 sub vmsg1t { print STDERR  "\t", @_, "\n"; }
 
@@ -77,7 +77,7 @@ foreach $key (keys(%$from2lab)) {
 
   ##-- translate other labels
   if (!defined($lab_to = $to2lab->{$key})) {
-    warn("$0: source label '$key' ($lab_from) not defined in sink file: using NoLabel!\n") if ($map_verbose);
+    warn("$0: source label '$key' ($lab_from) not defined in sink file: using NoLabel!\n") if ($verbose);
     $lab_to = $Gfsm::noLabel;
   }
 
