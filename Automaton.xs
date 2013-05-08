@@ -63,7 +63,7 @@ DESTROY(gfsmAutomaton* fsm)
 CODE:
  GFSM_PERL_DEBUG_EVAL( g_printerr("Gfsm::Automaton::DESTROY(fsm=%p)\n", fsm); )
  if (fsm) gfsm_automaton_free(fsm);
- g_blow_chunks();
+ gfsm_perl_blow_chunks();
 
 
 ##=====================================================================

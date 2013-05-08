@@ -60,6 +60,12 @@ void gfsm_perl_free(gpointer mem)
   GFSM_PERL_UNLOCK;
 }
 
+void gfsm_perl_blow_chunks(void)
+{
+#if 0
+  g_blow_chunks(); //-- Calls g_mem_chunk_clean() on all GMemChunk objects.  Deprecated since glib v2.10
+#endif
+}
 
 
 /*======================================================================
@@ -103,7 +109,7 @@ AV *gfsm_perl_ptr_array_to_av_uv(GPtrArray *ary)
   AV *av = newAV();
   guint i;
   for (i=0; i < ary->len; i++) {
-    av_push(av, newSVuv((UV)g_ptr_array_index(ary,i)));
+    av_push(av, newSVuv((UV)GPOINTER_TO_SIZE(g_ptr_array_index(ary,i))));
   }
   sv_2mortal((SV*)av);
   return av;

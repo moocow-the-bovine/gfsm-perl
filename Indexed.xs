@@ -52,7 +52,7 @@ DESTROY(gfsmIndexedAutomaton* xfsm)
 CODE:
  GFSM_PERL_DEBUG_EVAL( g_printerr("Gfsm::Automaton::Indexed::DESTROY(sclr=%p, xfsm=%p)\n", ST(0), xfsm); )
  if (xfsm) gfsm_indexed_automaton_free(xfsm);
- g_blow_chunks();
+ gfsm_perl_blow_chunks();
 
 
 ##=====================================================================

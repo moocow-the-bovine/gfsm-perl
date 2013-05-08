@@ -32,7 +32,7 @@ void
 DESTROY(gfsmAlphabet* abet)
 CODE:
  if (abet) gfsm_perl_alphabet_free((gfsmPerlAlphabet*)abet);
- g_blow_chunks();
+ gfsm_perl_blow_chunks();
 
 
 ##=====================================================================
@@ -147,7 +147,7 @@ CODE:
  RETVAL = newAV();
  sv_2mortal((SV*)RETVAL);
  for (i=0; i < tmp->len; i++) {
-   av_push(RETVAL, newSViv((IV)(g_ptr_array_index(tmp,i))));
+   av_push(RETVAL, newSViv((IV)GPOINTER_TO_INT(g_ptr_array_index(tmp,i))));
  }
  
  g_ptr_array_free(tmp,TRUE);
