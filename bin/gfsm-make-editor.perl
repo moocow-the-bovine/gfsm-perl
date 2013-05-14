@@ -335,7 +335,7 @@ __END__
 
 =head1 NAME
 
-gfsm-make-editor.perl - make a Fischer-Wagner style editor FST
+gfsm-make-editor.perl - make a Damerau/Levenshtein style editor FST
 
 =head1 SYNOPSIS
 
