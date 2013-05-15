@@ -385,8 +385,6 @@ __END__
 ## Pods
 =pod
 
-=pod
-
 =head1 NAME
 
 gfsm-make-editor.perl - make a Damerau/Levenshtein style editor FST
@@ -427,22 +425,22 @@ gfsm-make-editor.perl - make a Damerau/Levenshtein style editor FST
   -n2n, -no-multiply              # don't generate label-multiplying arcs
   -n1n, -no-unmultiply            # don't generate label-unmultiplying arcs
 
- Operand Selection Options:
+ Operand Selection Options:	  # default operand class is always '<sigma>'
   -S  , -superclasses SCLFILE     # load lextools(1) superclass labels from SCLFILE
-  -cm , -class-match    CLASS     # superclass for match  input  (default='<sigma>')
-  -ci , -class-insert   CLASS     # superclass for insert output (default='<sigma>')
-  -cd , -class-delete   CLASS     # superclass for delete input  (default='<sigma>')
-  -csl, -class-subst-lo CLASS     # superclass for subst  input  (default='<sigma>')
-  -csh, -class-subst-hi CLASS     # superclass for subst  output (default='<sigma>')
-  -cs , -class-subst    CLASS     # alias for '-csl=CLASS -csh=CLASS'
-  -cx , -class-exchange CLASS     # superclass for exchange input (default='<sigma>')
-  -c2 , -class-double   CLASS     # superclass for double input  (default='<sigma>')
-  -c1 , -class-undouble CLASS     # superclass for undouble input (default='<sigma>')
-  -c2n, -class-multiply CLASS     # superclass for multiply input  (default='<sigma>')
-  -c1n, -class-unmultiply CLASS   # superclass for unmultiply input  (default='<sigma>')
+  -cm , -class-match    CLASS     # superclass for match input&output
+  -ci , -class-insert   CLASS     # superclass for insert output
+  -cd , -class-delete   CLASS     # superclass for delete input
+  -csl, -class-subst-lo CLASS     # superclass for subst input
+  -csh, -class-subst-hi CLASS     # superclass for subst output
+  -cs , -class-subst    CLASS     # superclass for subst input&output; aliases '-csl=CLASS -csh=CLASS'
+  -cx , -class-exchange CLASS     # superclass for exchange input&output
+  -c2 , -class-double   CLASS     # superclass for double input&output
+  -c1 , -class-undouble CLASS     # superclass for undouble input&output
+  -c2n, -class-multiply   CLASS   # superclass for multiply input&output
+  -c1n, -class-unmultiply CLASS   # superclass for unmultiply input&output
 
  I/O Options:
-  -output      GFSMFILE     # output automaton
+  -o  , -output      GFSMFILE     # specify output automaton (default=STDOUT)
 
 =cut
 
