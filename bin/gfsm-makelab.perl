@@ -12,7 +12,11 @@ our $prog = basename($0);
 our $outbase = undef;
 our $labfile = undef;
 our $sclfile = undef;
+
 our $want_specials = 0;
+our $sigma = '<sigma>';
+our $epsilon = '<epsilon>';
+our $category = '<category>';
 
 ##------------------------------------------------------------------------------
 ## Command-line
@@ -25,8 +29,13 @@ GetOptions(##-- General
 	   ##-- I/O
 	   'special-symbols|specials|L' => $want_specials,
 	   'output|out|o=s' => \$outbase,
+
 	   'lab-output|labout|lab|lo=s' => \$labfile,
 	   'scl-output|sclout|scl|so=s' => \$sclfile,
+
+	   'epsilon|eps|e=s' => \$epsilon,
+	   'sigma|E' => \$sigma,
+	   'category|cat|c=s' => \$category,
 	  );
 
 pod2usage({-exitval=>0,-verbose=>0,}) if ($help);
@@ -35,6 +44,7 @@ pod2usage({-message=>"No input symbol file given!",-exitval=>0,-verbose=>0,}) if
 ##------------------------------------------------------------------------------
 ## escaping
 
+## $str = unescape($str_escaped)
 sub unescape {
   my $s = shift;
   $s =~ s/\\n/\n/g;
@@ -45,6 +55,71 @@ sub unescape {
   $s =~ s/\\(.)/$1/g;
   return $s;
 }
+
+## @sl_uniq = sluniq(@sorted_list)
+##  + sorts list
+sub sluniq {
+  my ($prev);
+  return map {defined($prev) && $_ eq $prev ? qw() : ($prev=$_)} @_;
+}
+
+## @l_uniq = luniq(@list)
+##  + sorts list
+sub luniq {
+  return sluniq(sort @_);
+}
+
+
+## DATA
+##  %class2terms : ($class => \@terms, ...)
+##  %cat2feat    : ($category => \@features, ...)
+##  %sym2id      : ($term => $id, ...)
+##  @id2sym      : ([$id] => $term, ...)
+
+my (%class2terms,%cat2feat);
+my %sym2id = ($epsilon=>0);
+my @id2sym = ($epsilon);
+
+## $id_or_empty = ensure_symbol($sym)
+sub ensure_symbol {
+  my $sym = shift;
+  return $sym2id{$sym} if (exists $sym2id{$sym});
+  return qw() if (exists $class2terms{$sym});
+  return qw() if (exists $cat2feat{$sym});
+  ##
+  ##-- new symbol: create as terminal
+  push(@id2sym,$sym);
+  return $sym2id{$sym} = $#id2sym;
+}
+
+## @ids = ensure_symbols(@syms)
+sub ensure_symbols {
+  return map {ensure_symbol($_)} @_;
+}
+
+## @terms_idsorted = terminals(@syms);
+sub terminals {
+  my @queue = (@_);
+  my %terms = qw();
+  my %visited = qw();
+  my ($sym);
+  while (defined($sym=shift(@queue))) {
+    next if (exists $visited{$sym});
+    $visited{$sym} = 1;
+    if (exists $class2terms{$sym}) {
+      push(@queue, @{$class2terms{$sym}});
+    }
+    elsif (defined $sym2id{$sym}) {
+      $terms{$sym} = 1;
+    }
+    else {
+      ensure_symbol($sym);
+      $terms{$sym} = 1;
+    }
+  }
+  return sort {$sym2id{$a}<=>$sym2id{$b}} keys %terms;
+}
+
 
 ##------------------------------------------------------------------------------
 ## MAIN
@@ -59,33 +134,57 @@ $labfile = "$outbase.lab" if (!$labfile);
 $sclfile = "$outbase.scl" if (!$sclfile);
 
 ##-- load symspec
-
-## %cls : ($class => \@syms, ...)
-## %cat : ($category => \@features, ...)
-## @sym : @all_symbols
-my (%cls,%cat,@sym,%sym);
 open(my $symfh, "<", $symfile)
   or die("$prog: open failed for '$symfile': $!");
+
 my ($class,@vals);
 while (<$symfh>) {
   chomp;
   next if (/^\s*$/);
   ($class,@vals) = map {unescape($_)} split(/\s+/,$_);
+
   if ($class eq 'Category:') {
-    push(@sym, (@sym{@vals}=@vals));
-    $cat{$vals[0]} = [@vals[1..$#vals]];
-  } else {
-    push(@sym, (@sym{@vals}=@vals));
-    push(@{$cls{$class}},@vals);
+    ##-- category: parse features
+    my $cat = shift @vals;
+    $cat2feat{$cat} = [@vals];
+    ensure_symbols(map {"_$_"} ($cat,@vals));
+  }
+  else {
+    ##-- symbol class: parse it
+    push(@{$class2terms{$class}}, terminals(@vals));
   }
 }
 close $symfh;
 
-##-- TODO: CONTINUE HERE: expand %cls (fixpoint-like?), then generate
+##-- set 'sigma' class
+$class2terms{$sigma} = [@id2sym[1..$#id2sym]];
 
 ##-- dump (debug)
 use Data::Dumper;
-print Data::Dumper->Dump([\%cls,\%cat,\@sym],[qw(cls cat sym)]);
+print STDERR Data::Dumper->Dump([\%class2terms,\%cat2feat,\%sym2id],[qw(class2terms cat2feat sym2id)]);
+
+##-- dump (labels)
+open(my $labfh, ">$labfile")
+  or die("$prog: open failed for labels-file '$labfile': $!");
+foreach (0..$#id2sym) {
+  print $labfh $id2sym[$_],"\t",$_,"\n";
+}
+close $labfh;
+
+##-- dump (superclasses)
+open(my $sclfh, ">$sclfile")
+  or die("$prog: open failed for labels-file '$labfile': $!");
+foreach my $cls (sort keys %class2terms) {
+  print $sclfh map {"$cls\t$_\n"} sort {$a<=>$b} @sym2id{@{$class2terms{$cls}}};
+}
+foreach my $cat (sort keys %cat2feat) {
+  print $sclfh
+    ("$category\t", $sym2id{"_$cat"}, "\n",
+     (map {"_$cat\t".$sym2id{"_$_"}."\n"} @{$cat2feat{$cat}}),
+    );
+}
+close $sclfh;
+
 
 __END__
 
