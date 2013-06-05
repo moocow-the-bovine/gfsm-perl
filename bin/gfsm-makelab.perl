@@ -27,7 +27,7 @@ GetOptions(##-- General
 	   #'quiet|q' => sub { $verbose=0; },
 
 	   ##-- I/O
-	   'special-symbols|specials|L' => $want_specials,
+	   'special-symbols|specials|L!' => \$want_specials,
 	   'output|out|o=s' => \$outbase,
 
 	   'lab-output|labout|lab|lo=s' => \$labfile,
@@ -156,12 +156,33 @@ while (<$symfh>) {
 }
 close $symfh;
 
+##-- maybe add lextools special symbols
+if ($want_specials) {
+  foreach my $spec (
+		    {class=>'<boundary>', vals=>[qw($$ ++ ww aa ii), ',,', qw(.. !! ??)]},
+		    {class=>undef,        vals=>[qw(<xml> </xml>)]},
+		    {class=>'<accent>',   vals=>[qw(acc:+ acc:- acc:c)]},
+		    {class=>'numval',     vals=>[
+						 (map {"10^$_"} (0..20)),
+						 (map {"20^$_"} (0..2)),
+						 (map {"$_*"} (0..9)),
+						]},
+		    {class=>'multiplier', vals=>[(map {"$_*"} (0..9))],},
+		    {class=>undef,          vals=>[qw(<bos> <eos>)]},
+		   )
+    {
+      ensure_symbols(@{$spec->{vals}});
+      push(@{$class2terms{$spec->{class}}}, terminals(@{$spec->{vals}})) if (defined($spec->{class}));
+    }
+}
+
+
 ##-- set 'sigma' class
 $class2terms{$sigma} = [@id2sym[1..$#id2sym]];
 
 ##-- dump (debug)
-use Data::Dumper;
-print STDERR Data::Dumper->Dump([\%class2terms,\%cat2feat,\%sym2id],[qw(class2terms cat2feat sym2id)]);
+#use Data::Dumper;
+#print STDERR Data::Dumper->Dump([\%class2terms,\%cat2feat,\%sym2id],[qw(class2terms cat2feat sym2id)]);
 
 ##-- dump (labels)
 open(my $labfh, ">$labfile")
