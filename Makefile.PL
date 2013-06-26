@@ -21,7 +21,7 @@ WriteMakefile
   (
    NAME		=> 'Gfsm',
    DISTNAME	=> 'gfsm-perl',
-   AUTHOR       => 'Bryan Jurish <jurish@uni-potsdam.de>',
+   AUTHOR       => 'Bryan Jurish <moocow@cpan.org>',
    ABSTRACT	=> 'Perl interface to libgfsm finite-state library',
    VERSION_FROM	=> 'Gfsm.pm',
 
