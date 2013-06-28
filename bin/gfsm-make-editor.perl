@@ -27,13 +27,21 @@ our %ops = (
 	    undouble => { cost=>undef, class_lo=>'<sigma>' },
 	    multiply => { cost=>undef, class_lo=>'<sigma>' },   ##-- iterated doubling
 	    unmultiply => { cost=>undef, class_lo=>'<sigma>' }, ##-- iterated undoubling
-	    exchange => { cost=>undef, class_lo=>'<sigma>', }, ##-- == "transpose"
+	    exchange => { cost=>undef, class_lo=>'<sigma>', },  ##-- == "transpose"
+	    ##
+	    adjacent_insert_before => { cost=>undef, class_lo=>'<sigma>', class_hi=>'<sigma>' }, ##-- keyboard-adjacent insert (left)
+	    adjacent_insert_after  => { cost=>undef, class_lo=>'<sigma>', class_hi=>'<sigma>' }, ##-- keyboard-adjacent insert (right)
+	    adjacent_delete_before => { cost=>undef, class_lo=>'<sigma>' }, ##-- keyboard-adjacent deletion (left)
+	    adjacent_delete_after  => { cost=>undef, class_lo=>'<sigma>' }, ##-- keyboard-adjacent deletion (right)
+	    adjacent_subst    => { cost=>undef, class_lo=>'<sigma>', class_hi=>'<sigma>' }, ##-- keyboard-adjacent substitution
+	    adjacent_exchange => { cost=>undef, class_lo=>'<sigma>', },  ##-- == "transpose"
 	   );
 
 our $numeric  = 1;
 our $max_cost = undef;
 our $delayed_action = undef;
 our $ed_single = 0;
+our $nil = [];
 
 ##-- which labels?
 our $scl_file = undef; ##-- defualt: none
@@ -45,47 +53,66 @@ GetOptions(##-- General
 	   'version|V' => \$version,
 
 	   ##-- Costs
-	   'cost-match|match|m=s'   => \$ops{match}{cost},
-	   'cost-insert|insert|i=s' => \$ops{insert}{cost},
-	   'cost-delete|delete|d=s' => \$ops{delete}{cost},
-	   'cost-substitute|substitute|subst|s=s' => \$ops{subst}{cost},
-	   'cost-double|double|2=s' => \$ops{double}{cost},
-	   'cost-undouble|undouble|1=s' => \$ops{undouble}{cost},
-	   'cost-multiply|multiply|cost-double-n|double-n|2n=s' => \$ops{multiply}{cost},
-	   'cost-unmultiply|unmultiply|cost-undouble-n|undouble-n|1n=s' => \$ops{unmultiply}{cost},
-	   'cost-exchange|exchange|x|cost-transpose|transpose|t=s' => \$ops{exchange}{cost},
+	   'cost-match|match|m=s'   => sub { $ops{match}{cost}=$_[1] },
+	   'cost-insert|insert|i=s' => sub { $ops{insert}{cost}=$_[1] },
+	   'cost-delete|delete|d=s' => sub { $ops{delete}{cost}=$_[1] },
+	   'cost-substitute|substitute|subst|s=s' => sub { $ops{subst}{cost}=$_[1] },
+	   'cost-double|double|2=s' => sub { $ops{double}{cost}=$_[1] },
+	   'cost-undouble|undouble|1=s' => sub { $ops{undouble}{cost}=$_[1] },
+	   'cost-multiply|multiply|cost-double-n|double-n|2n=s' => sub { $ops{multiply}{cost}=$_[1] },
+	   'cost-unmultiply|unmultiply|cost-undouble-n|undouble-n|1n=s' => sub { $ops{unmultiply}{cost}=$_[1] },
+	   'cost-exchange|exchange|x|cost-transpose|transpose|t=s' => sub { $ops{exchange}{cost}=$_[1] },
+	   ##
+	   'cost-adjacent-insert-before|adjacent-insert-before|ainsert-before|aib=s' => sub { $ops{adjacent_insert_before}{cost}=$_[1] },
+	   'cost-adjacent-insert-after|adjacent-insert-after|ainsert-after|aia=s'    => sub { $ops{adjacent_insert_after}{cost}=$_[1] },
+	   'cost-adjacent-insert|adjacent-insert|ainsert|ai=s' => sub { $ops{adjacent_insert_before}{cost}=$ops{adjacent_insert_after}{cost}=$_[1] },
+	   'cost-adjacent-delete-before|adjacent-delete-before|adelete-before|adb=s' => sub { $ops{adjacent_delete_before}{cost}=$_[1] },
+	   'cost-adjacent-delete-after|adjacent-delete-after|adelete-after|ada=s' => sub { $ops{adjacent_delete_after}{cost}=$_[1] },
+	   'cost-adjacent-delete|adjacent-delete|adelete|ad=s' => sub { $ops{adjacent_delete_before}{cost}=$ops{adjacent_delete_after}{cost}=$_[1] },
+	   'cost-adjacent-substitute|adjacent-substitute|asubstitute|asubst|as=s' => sub { $ops{adjacent_subst}{cost}=$_[1] },
+	   'cost-adjacent-exchange|adjacent-exchange|aexchange|ax=s' => sub { $ops{adjacent_exchange}{cost}=$_[1] },
 
 	   ##-- Editor Topology
 	   'single-operation|single-op|single|so!' => \$ed_single,
 	   'multiple-operation|multi-op|multi|mo!'  => sub { $ed_single=!$_[1] },
 	   'max-cost|M=s'          => \$max_cost,
 	   'delayed-action|da'     => \$delayed_action,
-	   'no-delayed-action|no-delayed|immediate-action|immediate|ia' => sub { $delayed_action=0; },
+	   'no-delayed-action|no-delayed|nodelay|immediate-action|immediate|ia' => sub { $delayed_action=0; },
 
 	   ##-- Which labels?
+	   'adjacent-pairs|ap|P=s' => \$pairs_file, ##-- limit operations to these (lo,hi) pairs
 	   'superclasses|super|scl|S=s' => \$scl_file,
 	   'class-match|cm=s'=> \$ops{match}{class_lo},
-	   'class-insert|ci=s' => \$ops{insert}{class_hi},
-	   'class-delete|cd=s' => \$ops{delete}{class_lo},
-	   'class-subst-lo|csl=s' => \$ops{subst}{class_lo},
-	   'class-subst-hi|csh=s' => \$ops{subst}{class_hi},
-	   'class-subst|cs=s' => sub { $ops{subst}{class_lo}=$ops{subst}{class_hi}=$_[1]; },
+	   'class-insert|ci=s' => sub { $ops{insert}{class_hi}=$ops{adjacent_insert_before}{class_hi}=$ops{adjacent_insert_after}{class_hi}=$_[1] },
+	   'class-delete|cd=s' => sub { $ops{delete}{class_lo}=$ops{adjacent_delete_before}{class_lo}=$ops{adjacent_delete_after}{class_lo}=$_[1] },
+	   'class-subst-lo|csl=s' => sub { $ops{subst}{class_lo}=$ops{adjacent_subst}{class_lo}=$_[1] },
+	   'class-subst-hi|csh=s' => sub { $ops{subst}{class_hi}=$ops{adjacent_subst}{class_hi}=$_[1] },
+	   'class-subst|cs=s' => sub { $ops{subst}{class_lo}=$ops{subst}{class_hi}=$ops{adjacent_subst}{class_lo}=$ops{adjacent_subst}{class_hi}=$_[1] },
 	   'class-double|c2=s' => \$ops{double}{class_lo},
 	   'class-undouble|c1=s' => \$ops{undouble}{class_lo},
 	   'class-multiply|class-double-n|c2n=s' => \$ops{multiply}{class_lo},
 	   'class-unmultiply|class-undouble-n|c1n=s' => \$ops{unmultiply}{class_lo},
-	   'class-exchange|cx=s' => \$ops{exchange}{class_lo},
+	   'class-exchange|cx=s' => sub { $ops{exchange}{class_lo}=$ops{adjacent_exchange}{class_lo}=$_[1] },
 
 	   ##-- Which ops?
-	   'no-match|nm' => sub { delete($ops{match}); },
-	   'no-substitute|no-subst|ns' => sub { delete($ops{subst}); },
-	   'no-insert|no-ins|ni'       => sub { delete($ops{insert}); },
-	   'no-delete|no-del|nd'       => sub { delete($ops{delete}); },
-	   'no-double|no-dbl|n2'       => sub { delete($ops{double}); },
-	   'no-undouble|no-undbl|n1'   => sub { delete($ops{undouble}); },
-	   'no-multiply|no-double-n|no-dbl-n|n2n'         => sub { delete($ops{multiply}); },
-	   'no-unmultiply|no-undouble-n|no-undbl-n|n1n'   => sub { delete($ops{unmultiply}); },
-	   'no-exchange|no-xc|nx|no-transpose|no-tr|nt'   => sub { delete($ops{exchange}); },
+	   'no-match|nm' => sub { delete $ops{match}{cost} },
+	   'no-substitute|no-subst|ns' => sub { delete $ops{subst}{cost} },
+	   'no-insert|no-ins|ni'       => sub { delete $ops{insert}{cost} },
+	   'no-delete|no-del|nd'       => sub { delete $ops{delete}{cost} },
+	   'no-levenshtein|no-lev|nL'  => sub { delete $_->{cost} foreach @ops{qw(match subst insert delete)} },
+	   'no-double|no-dbl|n2'       => sub { delete $ops{double}{cost} },
+	   'no-undouble|no-undbl|n1'   => sub { delete $ops{undouble}{cost} },
+	   'no-multiply|no-double-n|no-dbl-n|n2n'         => sub { delete $ops{multiply}{cost} },
+	   'no-unmultiply|no-undouble-n|no-undbl-n|n1n'   => sub { delete $ops{unmultiply}{cost} },
+	   'no-exchange|no-xc|nx|no-transpose|no-tr|nt'   => sub { delete $ops{exchange}{cost} },
+	   ##
+	   'no-adjacent-insert-before|no-ainsert-before|naib' => sub { delete $ops{adjacent_insert_before}{cost} },
+	   'no-adjacent-insert-after|no-ainsert-after|naia' => sub { delete $ops{adjacent_insert_after}{cost} },
+	   'no-adjacent-insert|no-ainsert|nai' => sub { delete $_->{cost} foreach @ops{qw(adjacent_insert_before adjacent_insert_after)} },
+	   'no-adjacent-delete-before|no-adelete-before|nadb' => sub { delete $ops{adjacent_delete_before}{cost} },
+	   'no-adjacent-delete-after|no-adelete-after|nada' => sub { delete $ops{adjacent_delete_after}{cost} },
+	   'no-adjacent-delete|no-adelete|nad' => sub { delete $_->{cost} foreach @ops{qw(adjacent_delete_before adjacent_delete_after)} },
+	   'no-adjacent-substitute|no-asubst|nas' => sub { delete $ops{adjacent_subst}{cost} },
 
 	   ##-- I/O
 	   'output|o|F=s' => \$outfile,
@@ -114,6 +141,26 @@ sub load_scl_file {
     push(@{$scl{$class}},$labid);
   }
   close(SCL);
+  return \%scl;
+}
+
+##======================================================================
+## Subs: load keyboard-adjacent pairs
+our %pairs = qw(); ## ("$lab1 $lab2" => undef, ...)
+sub load_pairs_file {
+  my ($file,$sym2id,$id2sym) = @_;
+  open(PAIRS,"<$file") || die("$0: open failed for adjacent-pairs file '$file': $!");
+  my ($c1,$c2, $l1,$l2);
+  while (<PAIRS>) {
+    chomp;
+    next if (/^\s*$/ || /^%%/);
+    ($c1,$c2) = split(/\s+/,$_,2);
+    ($l1,$l2) = @$sym2id{($c1,$c2)};
+    next if (!defined($l1) || !defined($l2));
+    @pairs{"$l1 $l2","$l2 $l1"} = qw();
+  }
+  close(PAIRS);
+  return \%pairs;
 }
 
 
@@ -132,6 +179,11 @@ if (defined($scl_file)) {
   load_scl_file($scl_file);
 } else {
   $scl{'<sigma>'} = [grep {$_!=0} values(%$string2id)];
+}
+
+##-- load pairs
+if (defined($pairs_file)) {
+  load_pairs_file($pairs_file, $string2id,$id2string);
 }
 
 ##-- get operand label-id subsets, populate $ops{$OP}{labs_(lo|hi)}
@@ -204,24 +256,21 @@ sub add_editor_path {
   ##
   ##-- delayed action (insert): get intermediate state
   my $q_del = cost2state($cost,1);
-  if (0) {
-    if (!exists($delayed_arcs_in{"${q_src} --${lo}:eps--> ${q_del} <$cost>"})) {
-      $delayed_arcs_in{"${q_src} --${lo}:eps--> ${q_del} <$cost>"} = undef;
-      $fsm->add_arc($q_src, $q_del, $lo,0, $cost);
-    }
-    if (!exists($delayed_arcs_out{"${q_del} --eps:${hi}--> ${q_dst} <0>"})) {
-      $delayed_arcs_out{"${q_del} --eps:${hi}--> ${q_dst} <0>"} = undef;
-      $fsm->add_arc($q_del, $q_dst, 0,$hi, 0);
-    }
-  } else {
-    if (!exists($delayed_arcs_in{"${q_src} --eps:eps--> ${q_del} <$cost>"})) {
-      $delayed_arcs_in{"${q_src} --eps:eps--> ${q_del} <$cost>"} = undef;
-      $fsm->add_arc($q_src, $q_del, 0,0, $cost);
-    }
-    if (!exists($delayed_arcs_out{"${q_del} --${lo}:${hi}--> ${q_dst} <0>"})) {
-      $delayed_arcs_out{"${q_del} --${lo}:${hi}--> ${q_dst} <0>"} = undef;
-      $fsm->add_arc($q_del, $q_dst, $lo,$hi, 0);
-    }
+  #  if (!exists($delayed_arcs_in{"${q_src} --${lo}:eps--> ${q_del} <$cost>"})) {
+  #    $delayed_arcs_in{"${q_src} --${lo}:eps--> ${q_del} <$cost>"} = undef;
+  #    $fsm->add_arc($q_src, $q_del, $lo,0, $cost);
+  #  }
+  #  if (!exists($delayed_arcs_out{"${q_del} --eps:${hi}--> ${q_dst} <0>"})) {
+  #    $delayed_arcs_out{"${q_del} --eps:${hi}--> ${q_dst} <0>"} = undef;
+  #    $fsm->add_arc($q_del, $q_dst, 0,$hi, 0);
+  #  }
+  if (!exists($delayed_arcs_in{"${q_src} --eps:eps--> ${q_del} <$cost>"})) {
+    $delayed_arcs_in{"${q_src} --eps:eps--> ${q_del} <$cost>"} = undef;
+    $fsm->add_arc($q_src, $q_del, 0,0, $cost);
+  }
+  if (!exists($delayed_arcs_out{"${q_del} --${lo}:${hi}--> ${q_dst} <0>"})) {
+    $delayed_arcs_out{"${q_del} --${lo}:${hi}--> ${q_dst} <0>"} = undef;
+    $fsm->add_arc($q_del, $q_dst, $lo,$hi, 0);
   }
 }
 
@@ -232,7 +281,7 @@ sub populate_state {
   my ($op,$lo,$hi, $q_nxt, $cost_nxt);
 
   ##-- populate: match
-  if (defined($op=$ops{match})) {
+  if (defined($op=$ops{match}) && defined($op->{cost})) {
     $cost_nxt = $cost_this + $op->{cost};
     foreach $lo (@{$op->{labs_lo}}) {
       if (defined($q_nxt = cost2state($cost_nxt))) {
@@ -243,7 +292,7 @@ sub populate_state {
   }
 
   ##-- populate: insert
-  if (defined($op=$ops{insert})) {
+  if (defined($op=$ops{insert}) && defined($op->{cost})) {
     $cost_nxt = $cost_this + $op->{cost};
     foreach $hi (@{$op->{labs_hi}}) {
       if (defined($q_nxt = cost2state($cost_nxt))) {
@@ -254,7 +303,7 @@ sub populate_state {
   }
 
   ##-- populate: delete
-  if (defined($op=$ops{delete})) {
+  if (defined($op=$ops{delete}) && defined($op->{cost})) {
     $cost_nxt = $cost_this + $op->{cost};
     foreach $lo (@{$op->{labs_lo}}) {
       if (defined($q_nxt = cost2state($cost_nxt))) {
@@ -265,7 +314,7 @@ sub populate_state {
   }
 
   ##-- populate: substitute
-  if (defined($op=$ops{subst})) {
+  if (defined($op=$ops{subst}) && defined($op->{cost})) {
     $cost_nxt = $cost_this + $op->{cost};
     foreach $lo (@{$op->{labs_lo}}) {
       foreach $hi (@{$op->{labs_hi}}) {
@@ -286,7 +335,7 @@ sub populate_state {
 	next if ($lo1==$lo2);
 	if (defined($q_nxt = cost2state($cost_nxt))) {
 	  $qid1 = key2state("EXCHANGE:q=$qid,lo1=$lo1,lo2=$lo2",0);
-	  add_editor_path($fsm, $qid,  $qid1,  $lo1,$lo2, $op->{cost}, 0);
+	  add_editor_path($fsm, $qid,  $qid1,  $lo1,$lo2, $op->{cost}, undef);
 	  add_editor_path($fsm, $qid1, $q_nxt, $lo2,$lo1, 0,           1);
 	  $populate_queue{$q_nxt}=$cost_nxt;
 	}
@@ -300,7 +349,7 @@ sub populate_state {
     foreach $lo (@{$op->{labs_lo}}) {
       if (defined($q_nxt = cost2state($cost_nxt))) {
 	$qid1 = key2state("DOUBLE:q=$qid,lo=$lo",0);
-	add_editor_path($fsm, $qid,  $qid1,  $lo,$lo, $op->{cost}, 0);
+	add_editor_path($fsm, $qid,  $qid1,  $lo,$lo, $op->{cost}, undef);
 	add_editor_path($fsm, $qid1, $q_nxt,   0,$lo, 0,           1);
 	$populate_queue{$q_nxt}=$cost_nxt;
       }
@@ -313,7 +362,7 @@ sub populate_state {
     foreach $lo (@{$op->{labs_lo}}) {
       if (defined($q_nxt = cost2state($cost_nxt))) {
 	$qid1 = key2state("UNDOUBLE:q=$qid,lo=$lo",0);
-	add_editor_path($fsm, $qid,  $qid1,  $lo,$lo, $op->{cost}, 0);
+	add_editor_path($fsm, $qid,  $qid1,  $lo,$lo, $op->{cost}, undef);
 	add_editor_path($fsm, $qid1, $q_nxt, $lo,0,   0,           1);
 	$populate_queue{$q_nxt}=$cost_nxt;
       }
@@ -326,7 +375,7 @@ sub populate_state {
     foreach $lo (@{$op->{labs_lo}}) {
       if (defined($q_nxt = cost2state($cost_nxt))) {
 	$qid1 = key2state("MULTIPLY:q=$qid,lo=$lo",0);
-	add_editor_path($fsm, $qid,  $qid1,  $lo,$lo, $op->{cost}, 0);
+	add_editor_path($fsm, $qid,  $qid1,  $lo,$lo, $op->{cost}, undef);
 	add_editor_path($fsm, $qid1, $qid1,    0,$lo, 0,           1);
 	add_editor_path($fsm, $qid1, $q_nxt,   0,$lo, 0,           1);
 	$populate_queue{$q_nxt}=$cost_nxt;
@@ -340,13 +389,111 @@ sub populate_state {
     foreach $lo (@{$op->{labs_lo}}) {
       if (defined($q_nxt = cost2state($cost_nxt))) {
 	$qid1 = key2state("UNMULTIPLY:q=$qid,lo=$lo",0);
-	add_editor_path($fsm, $qid,  $qid1,  $lo,$lo, $op->{cost}, 0);
+	add_editor_path($fsm, $qid,  $qid1,  $lo,$lo, $op->{cost}, undef);
 	add_editor_path($fsm, $qid1, $qid1,  $lo,0,   0,           1);
 	add_editor_path($fsm, $qid1, $q_nxt, $lo,0,   0,           1);
 	$populate_queue{$q_nxt}=$cost_nxt;
       }
     }
   }
+
+  ##-- populate: adjacency-sensitive operations
+  if (%pairs) {
+
+    ##-- populate: adjacent insert before
+    if (defined($op=$ops{adjacent_insert_before}) && defined($op->{cost})) {
+      $cost_nxt = $cost_this + $op->{cost};
+      foreach $lo (@{$op->{labs_lo}}) {
+	foreach $hi (@{$op->{labs_hi}}) {
+	  next if (!exists $pairs{"$lo $hi"});
+	  if (defined($q_nxt = cost2state($cost_nxt))) {
+	    $qid1 = key2state("ADJACENT_INSERT_BEFORE:q=$qid,lo=$lo",0);
+	    add_editor_path($fsm, $qid,  $qid1,    0,$hi,  $op->{cost}, undef);
+	    add_editor_path($fsm, $qid1, $q_nxt, $lo,$lo,            0, 1);
+	    $populate_queue{$q_nxt}=$cost_nxt;
+	  }
+	}
+      }
+    }
+
+    ##-- populate: adjacent insert after
+    if (defined($op=$ops{adjacent_insert_after}) && defined($op->{cost})) {
+      $cost_nxt = $cost_this + $op->{cost};
+      foreach $lo (@{$op->{labs_lo}}) {
+	foreach $hi (@{$op->{labs_hi}}) {
+	  next if (!exists $pairs{"$lo $hi"});
+	  if (defined($q_nxt = cost2state($cost_nxt))) {
+	    $qid1 = key2state("ADJACENT_INSERT_AFTER:q=$qid,lo=$lo",0);
+	    add_editor_path($fsm, $qid,  $qid1,  $lo,$lo,    $op->{cost}, undef);
+	    add_editor_path($fsm, $qid1, $q_nxt,   0,$hi,              0, 1);
+	    $populate_queue{$q_nxt}=$cost_nxt;
+	  }
+	}
+      }
+    }
+
+    ##-- populate: adjacent delete before
+    if (defined($op=$ops{adjacent_delete_before}) && defined($op->{cost})) {
+      $cost_nxt = $cost_this + $op->{cost};
+      foreach $lo1 (@{$op->{labs_lo}}) {    ##-- $lo1: to be delete
+	foreach $lo2 (@{$op->{labs_lo}}) {  ##-- $lo2: context
+	  next if (!exists $pairs{"$lo1 $lo2"});
+	  if (defined($q_nxt = cost2state($cost_nxt))) {
+	    $qid1 = key2state("ADJACENT_DELETE_BEFORE:q=$qid,lo2=$lo2",0);
+	    add_editor_path($fsm, $qid,  $qid1,  $lo1,0,    $op->{cost}, undef);
+	    add_editor_path($fsm, $qid1, $q_nxt, $lo2,$lo2,           0, 1);
+	    $populate_queue{$q_nxt}=$cost_nxt;
+	  }
+	}
+      }
+    }
+
+    ##-- populate: adjacent delete after
+    if (defined($op=$ops{adjacent_delete_after}) && defined($op->{cost})) {
+      $cost_nxt = $cost_this + $op->{cost};
+      foreach $lo1 (@{$op->{labs_lo}}) {    ##-- $lo1: to be delete
+	foreach $lo2 (@{$op->{labs_lo}}) {  ##-- $lo2: context
+	  next if (!exists $pairs{"$lo1 $lo2"});
+	  if (defined($q_nxt = cost2state($cost_nxt))) {
+	    $qid1 = key2state("ADJACENT_DELETE_AFTER:q=$qid,lo2=$lo2",0);
+	    add_editor_path($fsm, $qid,  $qid1,  $lo2,$lo2,    $op->{cost}, undef);
+	    add_editor_path($fsm, $qid1, $q_nxt, $lo1,0,                 0, 1);
+	    $populate_queue{$q_nxt}=$cost_nxt;
+	  }
+	}
+      }
+    }
+
+    ##-- populate: adjacent substitute
+    if (defined($op=$ops{adjacent_subst}) && defined($op->{cost})) {
+      $cost_nxt = $cost_this + $op->{cost};
+      foreach $lo (@{$op->{labs_lo}}) {
+	foreach $hi (@{$op->{labs_hi}}) {
+	  next if ($lo==$hi || !exists $pairs{"$lo $hi"});
+	  if (defined($q_nxt = cost2state($cost_nxt))) {
+	    add_editor_path($fsm, $qid, $q_nxt, $lo,$hi, $op->{cost});
+	    $populate_queue{$q_nxt}=$cost_nxt;
+	  }
+	}
+      }
+    }
+
+    ##-- populate: adjacent exchange (transpose)
+    if (defined($op=$ops{adjacent_exchange}) && defined($op->{cost})) {
+      $cost_nxt = $cost_this + $op->{cost};
+      foreach $lo1 (@{$op->{labs_lo}}) {
+	foreach $lo2 (@{$op->{labs_lo}}) {
+	  next if ($lo1==$lo2 || !exists $pairs{"$lo1 $lo2"});
+	  if (defined($q_nxt = cost2state($cost_nxt))) {
+	    $qid1 = key2state("EXCHANGE:q=$qid,lo1=$lo1,lo2=$lo2",0);
+	    add_editor_path($fsm, $qid,  $qid1,  $lo1,$lo2, $op->{cost}, undef);
+	    add_editor_path($fsm, $qid1, $q_nxt, $lo2,$lo1, 0,           1);
+	    $populate_queue{$q_nxt}=$cost_nxt;
+	  }
+	}
+      }
+    }
+  } ##-- END adjacency-sensitive ops
 
 }
 
@@ -408,6 +555,16 @@ gfsm-make-editor.perl - make a Damerau/Levenshtein style editor FST
   -2n , -cost-multiply   COST     # default=none
   -1n , -cost-unmultiply COST     # default=none
 
+ Adjacency-sensitive cost options (with -P PAIRSFILE):
+  -aib, -cost-adjacent-insert-before COST	# default=none
+  -aia, -cost-adjacent-insert-after  COST	# default=none
+  -adb, -cost-adjacent-delete-before COST	# default=none
+  -ada, -cost-adjacent-delete-after  COST	# default=none
+  -ai , -cost-adjacent-insert        COST	# alias for -aib=COST -aia=COST
+  -ad , -cost-adjacent-delete        COST	# alias for -adb=COST -ada=COST
+  -as , -cost-adjacent-substitute    COST	# default=none
+  -ax , -cost-adjacent-exchange      COST	# default=none
+
  Editor Topology Options:
   -so , -single / -mo , -multi    # create a single-/multi-operation editor (default: multi-operation)
   -M  , -max-cost COST            # maximum path cost (default: none)
@@ -419,6 +576,7 @@ gfsm-make-editor.perl - make a Damerau/Levenshtein style editor FST
   -ni , -no-insert                # don't generate insertion arcs
   -nd , -no-delete                # don't generate deletion arcs
   -ns , -no-subst                 # don't generate substitution arcs
+  -nL , -no-levenshtein		  # alias for -nm -ni -nd -ns
   -nx , -no-exchange              # don't generate exchange arcs
   -n2 , -no-double                # don't generate label-doubling arcs
   -n1 , -no-undouble              # don't generate label-undoubling arcs
@@ -426,6 +584,7 @@ gfsm-make-editor.perl - make a Damerau/Levenshtein style editor FST
   -n1n, -no-unmultiply            # don't generate label-unmultiplying arcs
 
  Operand Selection Options:	  # default operand class is always '<sigma>'
+  -P  , -adjacent-pairs PAIRSFILE # load adjacent pairs from PAIRSFILE (default: none)
   -S  , -superclasses SCLFILE     # load lextools(1) superclass labels from SCLFILE
   -cm , -class-match    CLASS     # superclass for match input&output
   -ci , -class-insert   CLASS     # superclass for insert output
@@ -467,15 +626,15 @@ Perl by Larry Wall.
 
 =head1 AUTHOR
 
-Bryan Jurish E<lt>moocow@ling.uni-potsdam.deE<gt>
+Bryan Jurish E<lt>moocow@cpan.orgE<gt>
 
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 by Bryan Jurish
+Copyright (C) 2007-2013 by Bryan Jurish
 
 This program is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.7 or,
+it under the same terms as Perl itself, either Perl version 5.14.2 or,
 at your option, any later version of Perl 5 you may have available.
 
 =head1 SEE ALSO
