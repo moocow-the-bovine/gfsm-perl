@@ -9,7 +9,7 @@ use File::Basename qw(basename);
 ## Defaults
 
 our $prog    = basename($0);
-our $VERSION = 0.04;
+our $VERSION = 0.05;
 
 our ($help,$version);
 
@@ -82,6 +82,7 @@ GetOptions(##-- General
 	   ##-- Which labels?
 	   'adjacent-pairs|ap|P=s' => \$pairs_file, ##-- limit operations to these (lo,hi) pairs
 	   'superclasses|super|scl|S=s' => \$scl_file,
+	   'class-sigma|sigma|C=s' => sub { $_->{class_hi}=$_->{class_lo}=$_[1] foreach (values %ops); },
 	   'class-match|cm=s'=> \$ops{match}{class_lo},
 	   'class-insert|ci=s' => sub { $ops{insert}{class_hi}=$ops{adjacent_insert_before}{class_hi}=$ops{adjacent_insert_after}{class_hi}=$_[1] },
 	   'class-delete|cd=s' => sub { $ops{delete}{class_lo}=$ops{adjacent_delete_before}{class_lo}=$ops{adjacent_delete_after}{class_lo}=$_[1] },
@@ -583,9 +584,10 @@ gfsm-make-editor.perl - make a Damerau/Levenshtein style editor FST
   -n2n, -no-multiply              # don't generate label-multiplying arcs
   -n1n, -no-unmultiply            # don't generate label-unmultiplying arcs
 
- Operand Selection Options:	  # default operand class is always '<sigma>'
+ Operand Selection Options:
   -P  , -adjacent-pairs PAIRSFILE # load adjacent pairs from PAIRSFILE (default: none)
   -S  , -superclasses SCLFILE     # load lextools(1) superclass labels from SCLFILE
+  -C  , -class-sigma    CLASS     # default operaand superclass (default: '<sigma>')
   -cm , -class-match    CLASS     # superclass for match input&output
   -ci , -class-insert   CLASS     # superclass for insert output
   -cd , -class-delete   CLASS     # superclass for delete input
