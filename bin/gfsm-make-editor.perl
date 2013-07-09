@@ -435,7 +435,7 @@ sub populate_state {
     ##-- populate: adjacent delete before
     if (defined($op=$ops{adjacent_delete_before}) && defined($op->{cost})) {
       $cost_nxt = $cost_this + $op->{cost};
-      foreach $lo1 (@{$op->{labs_lo}}) {    ##-- $lo1: to be delete
+      foreach $lo1 (@{$op->{labs_lo}}) {    ##-- $lo1: to be deleted
 	foreach $lo2 (@{$op->{labs_lo}}) {  ##-- $lo2: context
 	  next if (!exists $pairs{"$lo1 $lo2"});
 	  if (defined($q_nxt = cost2state($cost_nxt))) {
@@ -451,7 +451,7 @@ sub populate_state {
     ##-- populate: adjacent delete after
     if (defined($op=$ops{adjacent_delete_after}) && defined($op->{cost})) {
       $cost_nxt = $cost_this + $op->{cost};
-      foreach $lo1 (@{$op->{labs_lo}}) {    ##-- $lo1: to be delete
+      foreach $lo1 (@{$op->{labs_lo}}) {    ##-- $lo1: to be deleted
 	foreach $lo2 (@{$op->{labs_lo}}) {  ##-- $lo2: context
 	  next if (!exists $pairs{"$lo1 $lo2"});
 	  if (defined($q_nxt = cost2state($cost_nxt))) {
