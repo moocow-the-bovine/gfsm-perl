@@ -108,8 +108,8 @@ my ($qid,$lo,$hi);
 foreach $qid (0..($fst->n_states-1)) {
   next if (!$fst->has_state($qid));
   for ($ai->open($fst,$qid); $ai->ok; $ai->next) {
-    $ai->lower( $xlate[$ai->lower] ) if ($xlate_lo);
-    $ai->upper( $xlate[$ai->upper] ) if ($xlate_hi);
+    $ai->lower( $xlate[$ai->lower] // $Gfsm::noLabel ) if ($xlate_lo);
+    $ai->upper( $xlate[$ai->upper] // $Gfsm::noLabel ) if ($xlate_hi);
   }
 }
 
