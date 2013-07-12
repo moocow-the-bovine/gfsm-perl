@@ -1,3 +1,4 @@
+Changes
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
@@ -17,6 +18,7 @@ Indexed.xs
 Lookup.xs
 Paths.xs
 Semiring.xs
+StateSort.xs
 Arith.xs
 Trie.xs
 
@@ -51,9 +53,11 @@ t/06_algebra.t
 t/07_lookup.t
 t/08_viterbi.t
 t/09_arith.t
+t/10_indexed.t
 
 t/test.lab
 
+t/arcpaths.tfst
 t/automaton-in.tfst
 t/closure-plus-in.tfst
 t/closure-star-in.tfst
@@ -74,6 +78,7 @@ t/n_closure-in.tfst
 t/optional-in.tfst
 t/project-hi-in.tfst
 t/project-lo-in.tfst
+t/qsortme.tfsa
 t/renumber-in.tfst
 t/rmepsilon-in.tfst
 t/union-in-1.tfst
