@@ -210,6 +210,8 @@ __END__
 
 # Below is stub documentation for your module. You'd better edit it!
 
+=pod
+
 =head1 NAME
 
 Gfsm - Perl interface to the libgfsm finite-state library
@@ -217,7 +219,7 @@ Gfsm - Perl interface to the libgfsm finite-state library
 =head1 SYNOPSIS
 
   use Gfsm;
-
+ 
   ##... stuff happens
 
 =head1 DESCRIPTION

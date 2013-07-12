@@ -18,7 +18,7 @@ Gfsm::constants - constants defined in the Gfsm module.
  use Gfsm qw(:labels);
  $lab = $Gfsm::epsilon  = Gfsm::epsilon();
  $lab = $Gfsm::noLabel  = Gfsm::noLabel();
-
+ 
  $lab = $Gfsm::epsilon1 = Gfsm::epsilon1(); # for low-level composition
  $lab = $Gfsm::epsilon2 = Gfsm::epsilon2(); # for low-level composition
 
@@ -42,44 +42,42 @@ Gfsm::constants - constants defined in the Gfsm module.
  ##--------------------------------------------------------------
  ## Automaton arc-sort modes
  use Gfsm qw(:sortmodes);
-
  $mod = $Gfsm::ASMNone   = Gfsm::ASMNone();
  $mod = $Gfsm::ASMLower  = Gfsm::ASMLower();
  $mod = $Gfsm::ASMUpper  = Gfsm::ASMUpper();
  $mod = $Gfsm::ASMWeight = Gfsm::ASMWeight();
-
+ 
  $mod = $Gfsm::ACNone    = Gfsm::ACNone();
  $mod = $Gfsm::ACReverse = Gfsm::ACReverse();
  $mod = $Gfsm::ACAll     = Gfsm::ACAll();
-
+ 
  $mod = $Gfsm::ACLower   = Gfsm::ACLower();
  $mod = $Gfsm::ACUpper   = Gfsm::ACUpper();
  $mod = $Gfsm::ACWeight  = Gfsm::ACWeight();
  $mod = $Gfsm::ACSource  = Gfsm::ACSource();
  $mod = $Gfsm::ACTarget  = Gfsm::ACTarget();
  $mod = $Gfsm::ACUser    = Gfsm::ACUser();
-
+ 
  $mod = $Gfsm::ACLowerR  = Gfsm::ACLowerR();
  $mod = $Gfsm::ACUpperR  = Gfsm::ACUpperR();
  $mod = $Gfsm::ACWeightR = Gfsm::ACWeightR();
  $mod = $Gfsm::ACSourceR = Gfsm::ACSourceR();
  $mod = $Gfsm::ACTargetR = Gfsm::ACTargetR();
  $mod = $Gfsm::ACUserR   = Gfsm::ACUserR();
-
+ 
  ##-- mask construction & parsing
  $bits = $Gfsm::ACShift  = Gfsm::ACShift();
  $maxn = $Gfsm::ACMaxN   = Gfsm::ACMaxN();
-
+ 
  $mask  = Gfsm::acmask_from_chars($chars);   ##-- $chars a string matching /^[lLuUsStTwW_]*$/
  $mask  = Gfsm::acmask_from_args(@cmps);     ##-- @cmps a list of elementary comparisons
  $chars = Gfsm::acmask_to_chars($mask);
-
+ 
  $mask  = Gfsm::acmask_new($cmp,$n);          ##-- new mask for ${n}th comparison $cmp
  $cmp   = Gfsm::acmask_nth($mask,$n);         ##-- get ${n}th comparison in $mask
  $cmp0  = Gfsm::acmask_nth_comp($mask,$n);    ##-- get ${n}nth field in $mask (modulo sort direction)
  $bool  = Gfsm::acmask_nth_reverse($mask,$n); ##-- is the ${n}th comparison in $mask reversed?
  $char  = Gfsm::acmask_nth_char($mask,$n);    ##-- single-character representation of ${n}th comp in $mask
-
 
  ##--------------------------------------------------------------
  ## Label sides
@@ -118,7 +116,7 @@ Bryan Jurish E<lt>moocow@cpan.orgE<gt>
 Copyright (C) 2005 by Bryan Jurish
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.4 or,
+it under the same terms as Perl itself, either Perl version 5.14.2 or,
 at your option, any later version of Perl 5 you may have available.
 
 

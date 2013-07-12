@@ -202,15 +202,15 @@ Gfsm::Alphabet - object-oriented interface to libgfsm string alphabets.
  ## Lookup & Manipulation
  $lab = $abet->insert($key);       # insert a key string
  $lab = $abet->insert($key,$lab);  # insert a key string, requesting label $lab
-
+ 
  $lab = $abet->get_label($key);    # get or insert label for $key
  $lab = $abet->find_label($key);   # get label for $key, else Gfsm::noLabel
-
+ 
  $key = $abet->find_key($lab);     # get key for label, else undef
-
+ 
  $abet->remove_key($key);          # remove a key, if defined
  $abet->remove_label($lab);        # remove a label, if defined
-
+ 
  $abet->merge($abet2);             # add $abet2 keys to $abet1
  $labs = $abet->labels();          # get array-ref of all labels in $abet
 
@@ -229,7 +229,7 @@ Gfsm::Alphabet - object-oriented interface to libgfsm string alphabets.
  $abet      = $abet->fromHash(\%string2id);  # add mappings from \%string2id_hash
  $string2id = $abet->toHash();               # export mappings to hash-ref
  $string2id = $abet->asHash();               # read-only access to underlying index
-
+ 
  $abet      = $abet->fromArray(\@id2string); # add mappings from \@id2string
  $id2string = $abet->toArray();              # export mappings to array-ref
  $id2string = $abet->asArray();              # read-only access to underlying index
@@ -268,7 +268,7 @@ Bryan Jurish E<lt>moocow@cpan.orgE<gt>
 Copyright (C) 2005-2008 by Bryan Jurish
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.4 or,
+it under the same terms as Perl itself, either Perl version 5.14.2 or,
 at your option, any later version of Perl 5 you may have available.
 
 
