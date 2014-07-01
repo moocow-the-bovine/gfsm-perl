@@ -97,27 +97,32 @@ sub ensure_symbols {
   return map {ensure_symbol($_)} @_;
 }
 
-## @terms_idsorted = terminals(@syms);
+## @sorted = idsort(@terminals)
+sub idsort {
+  return sort {$sym2id{$a}<=>$sym2id{$b}} @_;
+}
+
+## @terms_nodups = terminals(@syms);
 sub terminals {
   my @queue = (@_);
   my %terms = qw();
   my %visited = qw();
-  my ($sym);
+  my ($sym,$key);
   while (defined($sym=shift(@queue))) {
     next if (exists $visited{$sym});
-    $visited{$sym} = 1;
+    $visited{$sym}  = 1;
     if (exists $class2terms{$sym}) {
       push(@queue, @{$class2terms{$sym}});
     }
     elsif (defined $sym2id{$sym}) {
-      $terms{$sym} = 1;
+      $terms{$sym} = ++$key;
     }
     else {
       ensure_symbol($sym);
-      $terms{$sym} = 1;
+      $terms{$sym} = ++$key;
     }
   }
-  return sort {$sym2id{$a}<=>$sym2id{$b}} keys %terms;
+  return sort {$terms{$a}<=>$terms{$b}} keys %terms;
 }
 
 
@@ -172,7 +177,7 @@ if ($want_specials) {
 		   )
     {
       ensure_symbols(@{$spec->{vals}});
-      push(@{$class2terms{$spec->{class}}}, terminals(@{$spec->{vals}})) if (defined($spec->{class}));
+      push(@{$class2terms{$spec->{class}}}, idsort(terminals(@{$spec->{vals}}))) if (defined($spec->{class}));
     }
 }
 
