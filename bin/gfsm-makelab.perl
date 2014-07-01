@@ -196,7 +196,10 @@ close $labfh;
 open(my $sclfh, ">$sclfile")
   or die("$prog: open failed for labels-file '$labfile': $!");
 foreach my $cls (sort keys %class2terms) {
-  print $sclfh map {"$cls\t$_\n"} sort {$a<=>$b} @sym2id{@{$class2terms{$cls}}};
+  print $sclfh
+    map {"$cls\t$_\n"}
+    #sort {$a<=>$b}			##-- do NOT label-sort things here; it can mess up 1-1 correspondences for e.g. lexrulecomp "=>" operator
+    @sym2id{@{$class2terms{$cls}}};
 }
 foreach my $cat (sort keys %cat2feat) {
   print $sclfh
