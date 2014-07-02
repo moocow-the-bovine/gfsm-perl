@@ -1,9 +1,10 @@
 Change log for perl module Gfsm:
 
-v0.0401 (r)
+v0.0401 (r755) Wed, 02 Jul 2014 10:16:50 +0200 moocow
+	+ dumped 3-component versions again
 
-v0.03.* (r..)
-	+ weirdness with 3-component version module versions; dumping again
+v0.03.* (r???..???)
+	+ switched to 3-component versions X.Y.Z
 
 v0.0217 (r601..???) Mon, 03 Aug 2009 12:17:15 +0200
 	+ fixed Gfsm::Alphabet::labels_to_string(), ...::string_to_labels()
