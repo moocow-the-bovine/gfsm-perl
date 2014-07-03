@@ -3,6 +3,7 @@
 use lib qw(./blib/lib ./blib/arch);
 use Gfsm;
 use Storable qw(freeze thaw);
+use Encode qw(encode decode encode_utf8 decode_utf8);
 
 sub perlhash {
   my $key = shift;
@@ -364,7 +365,6 @@ package main;
 ##--------------------------------------------------------------
 ## utf8 alphabet woes
 package main;
-use Encode qw(encode decode);
 
 sub utf8abet {
   our $a = Gfsm::Alphabet->new();
@@ -435,7 +435,59 @@ sub test_arcpaths {
   my $aps = $fsm->arcpaths();
   print "arcpaths=$aps\n";
 }
-test_arcpaths();
+#test_arcpaths();
+
+##--------------------------------------------------------------
+## test: utf8 alphabet flag
+
+sub test_utf8flag {
+  my @l = ('<eps>',"\x{17f}", qw(h i t));
+  my ($abet,$bbet);
+
+  if (1) {
+    $abet = Gfsm::Alphabet->new();
+    $abet->utf8(1);
+    $abet->get_label($l[$_]=>$_) foreach (0..$#l);
+  }
+  if (1) {
+    $bbet = Gfsm::Alphabet->new();
+    $bbet->utf8(0);
+    my @le = map {encode_utf8($_)} @l;
+    $bbet->get_label($le[$_], $_) foreach (0..$#le);
+    $bbet->save(\*STDOUT);
+  }
+
+  my $su = "\x{017f}hit";
+  utf8::decode($su) if (!utf8::is_utf8($su));
+  my $se = $su;
+  utf8::encode($se);
+  ##
+  my $sux = "[\x{17f}]hit";
+  utf8::decode($sux) if (!utf8::is_utf8($sux));
+  my $sex = $sux;
+  utf8::encode($sex);
+
+  ##-- test string->labels
+  binmode(STDOUT,':utf8');
+  if ($abet) {
+    print STDERR "--- LOOKUP: abet (utf8=", $abet->utf8(), ") ---\n";
+    print "labels(abet/su=$su) = [", join(' ', @{$abet->string_to_labels($su,1,1)}), "]\n";
+    print "labels(abet/se=$su) = [", join(' ', @{$abet->string_to_labels($se,1,1)}), "]\n";
+    print "labels(abet/sux=$sux) = [", join(' ', @{$abet->string_to_labels($sux,1,1)}), "]\n";
+    print "labels(abet/sex=$sex) = [", join(' ', @{$abet->string_to_labels($sex,1,1)}), "]\n";
+  }
+  ##
+  if ($bbet) {
+    print STDERR "--- LOOKUP: bbet (utf8=", $bbet->utf8(), ") ---\n";
+    print "labels(bbet/su=$su) = [", join(' ', @{$bbet->string_to_labels($su,1,1)}), "]\n";
+    print "labels(bbet/se=$se) = [", join(' ', @{$bbet->string_to_labels($se,1,1)}), "]\n";
+    print "labels(bbet/sux=$sux) = [", join(' ', @{$bbet->string_to_labels($sux,1,1)}), "]\n";
+    print "labels(bbet/sex=$sux) = [", join(' ', @{$bbet->string_to_labels($sex,1,1)}), "]\n";
+  }
+
+  print STDERR "test_utf8flag() done\n";
+}
+test_utf8flag();
 
 ##--------------------------------------------------------------
 ## MAIN

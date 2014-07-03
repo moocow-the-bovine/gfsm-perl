@@ -194,9 +194,10 @@ Gfsm::Alphabet - object-oriented interface to libgfsm string alphabets.
 
  ##--------------------------------------------------------------
  ## Alphabet properties
- $lab = $abet->lab_min();       # get first allocated LabelId
- $lab = $abet->lab_max();       # get last allocated LabelId
- $n   = $abet->size();          # get number of defined labels
+ $lab  = $abet->lab_min();      # get first allocated LabelId
+ $lab  = $abet->lab_max();      # get last allocated LabelId
+ $n    = $abet->size();         # get number of defined labels
+ $bool = $abet->utf8(?$bool);	# get/set alphabet UTF-8 flag
 
  ##--------------------------------------------------------------
  ## Lookup & Manipulation
@@ -265,7 +266,7 @@ Bryan Jurish E<lt>moocow@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2005-2008 by Bryan Jurish
+Copyright (C) 2005-2014 by Bryan Jurish
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.14.2 or,

@@ -205,7 +205,7 @@ gfsmLabelVal gfsm_perl_alphabet_key_lookup(gfsmPerlAlphabet *alph, SV* key)
   HE *he = hv_fetch_ent(alph->hv, key, 0, 0);
 
 #ifdef GFSMDEBUG
-  fprintf(stderr, "gfsm_perl_alphabet_key_lookup(keysv=%p)\n", key);
+  fprintf(stderr, "gfsm_perl_alphabet_key_lookup(keysv=%p, s=%s, utf8=%d)\n", key, (key ? SvPV_nolen(key) : ""), (key ? SvUTF8(key) : 0));
 #endif
 
   if (he) {
@@ -253,7 +253,7 @@ gfsmLabelVal gfsm_perl_alphabet_insert(gfsmPerlAlphabet *alph, SV *key, gfsmLabe
 
 #ifdef GFSMDEBUG
   gfsmLabelVal lab0 = lab;
-  fprintf(stderr, "gfsm_perl_alphabet_insert(key=%p, lab=%u)\n", key, lab);
+  fprintf(stderr, "gfsm_perl_alphabet_insert(key=%p, s=%s, utf8=%d, lab=%u)\n", key, (key ? SvPV_nolen(key): ""), (key ? SvUTF8(key) : -1), lab);
 #endif
 
   if (lab == gfsmNoLabel) { lab = av_len(alph->av)+1; }
@@ -363,7 +363,7 @@ void rmhv(HV *hv, SV *key)
 //-- string read function for perl scalars
 SV *gfsm_perl_alphabet_scalar_read(gfsmPerlAlphabet *alph, GString *gstr)
 {
-  return newSVpv(gstr->str, gstr->len);
+  return newSVpvn_flags(gstr->str, gstr->len, (((gfsmAlphabet*)alph)->utf8 ? SVf_UTF8 : 0));
 }
 
 //----------------

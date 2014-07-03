@@ -8,7 +8,7 @@
 /*======================================================================
  * Debugging
  */
-/*#define GFSMDEBUG 1*/
+//#define GFSMDEBUG 1
 
 #if defined(GFSMDEBUG) || defined(GFSM_PERL_DEBUG)
 # define GFSM_PERL_DEBUG_EVAL(code_) code_

@@ -63,6 +63,16 @@ CODE:
 OUTPUT:
  RETVAL
 
+gboolean
+utf8(gfsmAlphabet *abet, ...)
+CODE:
+ if (items > 1) {
+   abet->utf8 = SvTRUE(ST(1));
+ }
+ RETVAL = abet->utf8;
+OUTPUT:
+ RETVAL
+
 
 ##--------------------------------------------------------------
 ## Lookup & Manipulation
