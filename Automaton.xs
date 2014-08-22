@@ -282,7 +282,7 @@ OUTPUT:
 
 #/** Load an automaton from a scalar buffer (implicitly clear()s @fsm) */
 gboolean
-load_string(gfsmAutomaton *fsm, SV *str)
+_load_string(gfsmAutomaton *fsm, SV *str)
 PREINIT:
  gfsmError *err=NULL;
  gfsmIOHandle *ioh=NULL;
@@ -302,7 +302,7 @@ OUTPUT:
 
 #/** Save an automaton to a scalar */
 gboolean
-save_string(gfsmAutomaton *fsm, SV *str)
+_save_string(gfsmAutomaton *fsm, SV *str)
 PREINIT:
  gfsmError *err=NULL;
  gfsmIOHandle *ioh=NULL;
@@ -344,8 +344,8 @@ OUTPUT:
  RETVAL
 
 gboolean
-compile_string(gfsmAutomaton *fsm, \
-	       SV            *str, \
+_compile_string(gfsmAutomaton *fsm, \
+ 	       SV            *str, \
 	       gfsmAlphabet  *abet_lo=NULL, \
 	       gfsmAlphabet  *abet_hi=NULL, \
 	       gfsmAlphabet  *abet_Q=NULL)
@@ -387,7 +387,7 @@ OUTPUT:
  RETVAL
 
 gboolean
-print_att_string(gfsmAutomaton *fsm, \
+_print_att_string(gfsmAutomaton *fsm, \
 		 SV            *str, \
 		 gfsmAlphabet  *abet_lo=NULL, \
 		 gfsmAlphabet  *abet_hi=NULL, \

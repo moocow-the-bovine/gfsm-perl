@@ -59,6 +59,7 @@ INCLUDE: Automaton.xs
 INCLUDE: ArcIter.xs
 INCLUDE: Algebra.xs
 INCLUDE: Arith.xs
+INCLUDE: Encode.xs
 INCLUDE: Lookup.xs
 INCLUDE: Paths.xs
 INCLUDE: Trie.xs

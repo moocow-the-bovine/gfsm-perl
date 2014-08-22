@@ -139,6 +139,23 @@ gfsm_automaton_intersect_full(gfsmAutomaton *fsm1, gfsmAutomaton *fsm2, gfsmAuto
 CODE:
  gfsm_automaton_intersect_full(fsm1,fsm2,intersect,NULL);
 
+#//------------------------------
+#/** Minimize an automaton, treating transducers as pair-acceptors.
+# *  Pseudo-destructive on @fsm.
+# */
+void
+gfsm_automaton_minimize(gfsmAutomaton *fsm, gboolean rmeps = TRUE)
+CODE:
+ gfsm_automaton_minimize_full(fsm, rmeps);
+
+#//------------------------------
+#/** Compact an automaton by encoding, minimizing, and decoding.
+# *  Pseudo-destructive on @fsm.
+# */
+void
+gfsm_automaton_compact(gfsmAutomaton *fsm, gboolean rmeps = TRUE)
+CODE:
+ gfsm_automaton_compact_full(fsm, rmeps);
 
 #//------------------------------
 #/** Invert upper and lower labels of an FSM */

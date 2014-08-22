@@ -1,5 +1,9 @@
 Change log for perl module Gfsm:
 
+v0.0403 (r781) Fri, 22 Aug 2014 13:14:43 +0200 moocow
+	+ added minimize(), compact(), encode(), decode() methods
+	+ require at least gfsm-v0.0.14
+
 v0.0402 (r759) Thu, 03 Jul 2014 10:18:51 +0200 moocow
 	+ added access to gfsmAlphabet utf8 flag
 	  - for best results, use in conjunction with perl Sv_UTF8 scalar flag on keys

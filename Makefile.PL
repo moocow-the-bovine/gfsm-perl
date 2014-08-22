@@ -3,8 +3,8 @@ use ExtUtils::MakeMaker;
 ##----------------------------------------------------------------------
 ## Configuration
 ##----------------------------------------------------------------------
-if (system("pkg-config --atleast-version=0.0.10 gfsm") != 0) {
-  die("Required module gfsm >= v0.0.10 not found!\n");
+if (system("pkg-config --atleast-version=0.0.14 gfsm") != 0) {
+  die("Required module gfsm >= v0.0.14 not found!\n");
 }
 
 ##-- @pthread_flags: flag(s) for pthread (added to both CPPFLAGS and LIBS)
@@ -72,6 +72,7 @@ sub MY::depend {
 		   ." Algebra.xs"
 		   ." Arith.xs"
 		   ." ArcIter.xs"
+		   ." Encode.xs"
 		   ." Lookup.xs"
 		   ." Paths.xs"
 		   ." Trie.xs"

@@ -373,7 +373,7 @@ sub utf8abet {
   $a->get_label('zero'); ##--> 0
   $a->get_label('one');  ##--> 1
 
-  our $wlat1 = 'daß';
+  our $wlat1 = 'daÃŸ';
   our $wutf8 = decode('latin1',$wlat1);
 
   our $labu = $a->get_label($wutf8); ##--> 2
@@ -487,7 +487,26 @@ sub test_utf8flag {
 
   print STDERR "test_utf8flag() done\n";
 }
-test_utf8flag();
+#test_utf8flag();
+
+##--------------------------------------------------------------
+## test: encode/decode/compact
+
+sub test_encode {
+  my $infile = @_ ? shift : 'e.gfst';
+  my $fsm = Gfsm::Automaton->load($infile) or die("$0: load failed for $infile: $!");
+  my $key0 = undef; #$fsm->shadow;
+
+  my ($enc,$key) = $fsm->encode($key0);
+  (my $enc1=$fsm->clone)->_encode($key1=$fsm->shadow);
+
+  my $dec  = $enc->decode($key);
+  (my $dec1=$enc1->clone)->decode($key1);
+
+  print STDERR "test_encode(): done\n";
+  exit 0;
+}
+test_encode(@ARGV);
 
 ##--------------------------------------------------------------
 ## MAIN
