@@ -20,6 +20,7 @@ Paths.xs
 Semiring.xs
 StateSort.xs
 Arith.xs
+Encode.xs
 Trie.xs
 
 typemap
