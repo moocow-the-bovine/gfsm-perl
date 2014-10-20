@@ -360,21 +360,24 @@ sub union {my $fsm=shift->clone; $fsm->_union(@_); return $fsm;}
 
 ## $result = $fst->lookup($input)
 ## $result = $fst->lookup($input,$result)
+## $result = $fst->lookup($input,$result,$max_states)
 sub lookup {
-  my ($fst,$input,$result) = @_;
-  $result = $fst->shadow() if (!$result);
-  $fst->_lookup($input,$result);
+  my ($fst,$input,$result,$maxq) = @_;
+  $result  = $fst->shadow() if (!$result);
+  $maxq  ||= 0;
+  $fst->_lookup($input,$result,$maxq);
   return $result;
 }
 
 ##-- list context:
 ## ($result,$statemap) = $fst->lookup_full($input)
-## ($result,$statemap) = $fst->lookup_full($input,$result)
+## ($result,$statemap) = $fst->lookup_full($input,$result,$max_states)
 ##   + in scalar context, returns only $statemap
 sub lookup_full {
-  my ($fst,$input,$result) = @_;
+  my ($fst,$input,$result,$maxq) = @_;
   $result = $fst->shadow() if (!$result);
-  my $map = $fst->_lookup_full($input,$result);
+  $maxq  ||= 0;
+  my $map = $fst->_lookup_full($input,$result,$maxq);
   return wantarray ? ($result,$map) : $map;
 }
 
@@ -600,13 +603,19 @@ Gfsm::Automaton - object-oriented interface to libgfsm finite-state automata
  ##--------------------------------------------------------------
  ## Composition (low-level)
  
- $fsmout = $fsm1->compose_full($fsm2,$fsmout);              # mid-level composition
+ $fsmout = $fsm1->compose_full($fsm2,$fsmout); # mid-level composition
 
  ##--------------------------------------------------------------
  ## Lookup
  
- $fsm   = $fst->lookup($labs);            # linear composition: $fsm=compose(id($labs),$fst)
- $map   = $fst->lookup_full($labs,$fsm);  # linear composition to $fsm, returns stateid-map
+ $fsm = $fst->lookup($labs);                   # string+fst composition: $fsm=compose(id($labs),$fst)
+ $fsm = $fst->lookup($labs,$fsm);              # ... specifying result fsm
+ $fsm = $fst->lookup($labs,$fsm,$maxq);        # ... specifying result and result size limit
+ 
+ ($fsm,$map) = $fst->lookup_full($labs);             # ... returning state-id map
+ ($fsm,$map) = $fst->lookup_full($labs,$fsm);        # ... specifying result
+ ($fsm,$map) = $fst->lookup_full($labs,$fsm,$maxq);  # ... specifying result and size limit
+ $map        = $fst->lookup_full($labs,$fsm,$maxq);  # ... in scalar context returns only map.
  
  $trellis = $fst->lookup_viterbi($labs);  # Viterbi trellis construction
 

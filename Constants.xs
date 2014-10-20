@@ -314,3 +314,13 @@ CODE:
  RETVAL=gfsmLSUpper;
 OUTPUT:
  RETVAL
+
+##--------------------------------------------------------------
+## gfsmLookup.h: limits
+
+gfsmStateId
+LookupMaxResultStates()
+CODE:
+ RETVAL=gfsmLookupMaxResultStates;
+OUTPUT:
+ RETVAL

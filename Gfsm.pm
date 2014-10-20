@@ -9,7 +9,7 @@ use Exporter;
 
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.0403';
+our $VERSION = '0.0404';
 
 require XSLoader;
 XSLoader::load('Gfsm', $VERSION);
@@ -160,6 +160,14 @@ $EXPORT_TAGS{labelsides} = [
 			    qw($LSLower LSLower),
 			    qw($LSUpper LSUpper),
 			   ];
+
+##--------------------------------------------------------------
+## Constants: lookup limits
+our $LookupMaxResultStates = LookupMaxResultStates();
+$EXPORT_TAGS{limits} = [
+			qw($LookupMaxResultStates LookupMaxResultStates),
+		       ];
+
 
 ##======================================================================
 ## Utilities: arcpaths
