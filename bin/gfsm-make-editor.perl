@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 
 use Gfsm;
+use Encode qw(encode decode);
 use Pod::Usage;
 use Getopt::Long qw(:config no_ignore_case);
 use File::Basename qw(basename);
@@ -9,7 +10,7 @@ use File::Basename qw(basename);
 ## Defaults
 
 our $prog    = basename($0);
-our $VERSION = 0.05;
+our $VERSION = 0.06;
 
 our ($help,$version);
 
@@ -28,6 +29,8 @@ our %ops = (
 	    multiply => { cost=>undef, class_lo=>'<sigma>' },   ##-- iterated doubling
 	    unmultiply => { cost=>undef, class_lo=>'<sigma>' }, ##-- iterated undoubling
 	    exchange => { cost=>undef, class_lo=>'<sigma>', },  ##-- == "transpose"
+	    toupper => { cost=>undef, class_lo=>'<sigma>', },   ##-- upper-case
+	    tolower => { cost=>undef, class_lo=>'<sigma>', },   ##-- lower-case
 	    ##
 	    adjacent_insert_before => { cost=>undef, class_lo=>'<sigma>', class_hi=>'<sigma>' }, ##-- keyboard-adjacent insert (left)
 	    adjacent_insert_after  => { cost=>undef, class_lo=>'<sigma>', class_hi=>'<sigma>' }, ##-- keyboard-adjacent insert (right)
@@ -41,10 +44,14 @@ our $numeric  = 1;
 our $max_cost = undef;
 our $delayed_action = undef;
 our $ed_single = 0;
+our $encoding = 'raw';
 our $nil = [];
 
-##-- which labels?
-our $scl_file = undef; ##-- defualt: none
+##-- label selection superclasses
+our $scl_file = undef; ##-- default: none
+
+##-- auxilliary rules (TAB-separated if any TABs are present on line, otherwise whitespace-separated): COST LO HI (COMMENT?)
+our $aux_file  = undef;
 
 ##======================================================================
 ## Command-Line
@@ -62,6 +69,9 @@ GetOptions(##-- General
 	   'cost-multiply|multiply|cost-double-n|double-n|2n=s' => sub { $ops{multiply}{cost}=$_[1] },
 	   'cost-unmultiply|unmultiply|cost-undouble-n|undouble-n|1n=s' => sub { $ops{unmultiply}{cost}=$_[1] },
 	   'cost-exchange|exchange|x|cost-transpose|transpose|t=s' => sub { $ops{exchange}{cost}=$_[1] },
+	   'cost-toupper|toupper|upper|u=s' => sub { $ops{toupper}{cost}=$_[1] },
+	   'cost-tolower|tolower|lower|l=s' => sub { $ops{tolower}{cost}=$_[1] },
+	   'cost-case|case|c=s' => sub { $ops{tolower}{cost}=$ops{toupper}{cost}=$_[1] },
 	   ##
 	   'cost-adjacent-insert-before|adjacent-insert-before|ainsert-before|aib=s' => sub { $ops{adjacent_insert_before}{cost}=$_[1] },
 	   'cost-adjacent-insert-after|adjacent-insert-after|ainsert-after|aia=s'    => sub { $ops{adjacent_insert_after}{cost}=$_[1] },
@@ -76,11 +86,13 @@ GetOptions(##-- General
 	   'single-operation|single-op|single|so!' => \$ed_single,
 	   'multiple-operation|multi-op|multi|mo!'  => sub { $ed_single=!$_[1] },
 	   'max-cost|M=s'          => \$max_cost,
-	   'delayed-action|da'     => \$delayed_action,
+	   'delayed-action|delay|da'     => \$delayed_action,
 	   'no-delayed-action|no-delayed|nodelay|immediate-action|immediate|ia' => sub { $delayed_action=0; },
+	   'aux-rules-file|arf|aux-rules|ar|rules-file|rf|A=s' => \$aux_file, ##-- auxilliary rules
+	   'no-aux-rules|nar|no-aux|na|nA' => sub { $aux_file=undef },
 
 	   ##-- Which labels?
-	   'adjacent-pairs|ap|P=s' => \$pairs_file, ##-- limit operations to these (lo,hi) pairs
+	   'adjacent-pairs-file|apf|adjacent-pairs|ap|pairs-file|pf|P=s' => \$pairs_file, ##-- adjacency operations only on these symbol-pairs (symmetric)
 	   'superclasses|super|scl|S=s' => \$scl_file,
 	   'class-sigma|sigma|C=s' => sub { $_->{class_hi}=$_->{class_lo}=$_[1] foreach (values %ops); },
 	   'class-match|cm=s'=> \$ops{match}{class_lo},
@@ -94,6 +106,9 @@ GetOptions(##-- General
 	   'class-multiply|class-double-n|c2n=s' => \$ops{multiply}{class_lo},
 	   'class-unmultiply|class-undouble-n|c1n=s' => \$ops{unmultiply}{class_lo},
 	   'class-exchange|cx=s' => sub { $ops{exchange}{class_lo}=$ops{adjacent_exchange}{class_lo}=$_[1] },
+	   'class-toupper|class-upper|cu=s' => sub { $ops{toupper}{class_lo}=$_[1] },
+	   'class-tolower|class-lower|cl=s' => sub { $ops{tolower}{class_lo}=$_[1] },
+	   'class-case|cc=s' => sub { $ops{tolower}{class_lo}=$ops{toupper}{class_lo}=$_[1] },
 
 	   ##-- Which ops?
 	   'no-match|nm' => sub { delete $ops{match}{cost} },
@@ -106,6 +121,9 @@ GetOptions(##-- General
 	   'no-multiply|no-double-n|no-dbl-n|n2n'         => sub { delete $ops{multiply}{cost} },
 	   'no-unmultiply|no-undouble-n|no-undbl-n|n1n'   => sub { delete $ops{unmultiply}{cost} },
 	   'no-exchange|no-xc|nx|no-transpose|no-tr|nt'   => sub { delete $ops{exchange}{cost} },
+	   'no-toupper|no-upper|no-u|nu' => sub { delete $ops{toupper}{cost} },
+	   'no-tolower|no-lower|no-l|nl' => sub { delete $ops{tolower}{cost} },
+	   'no-case|nc' => sub { delete $ops{tolower}{cost}; delete $ops{toupper}{cost} },
 	   ##
 	   'no-adjacent-insert-before|no-ainsert-before|naib' => sub { delete $ops{adjacent_insert_before}{cost} },
 	   'no-adjacent-insert-after|no-ainsert-after|naia' => sub { delete $ops{adjacent_insert_after}{cost} },
@@ -116,14 +134,15 @@ GetOptions(##-- General
 	   'no-adjacent-substitute|no-asubst|nas' => sub { delete $ops{adjacent_subst}{cost} },
 
 	   ##-- I/O
+	   'encoding|e=s' => \$encoding,
 	   'output|o|F=s' => \$outfile,
 	  );
-
+$encoding = undef if ($encoding =~ /^(?:raw|bin)$/i);
 pod2usage({-exitval=>0, -verbose=>0}) if ($help);
 
 if ($version) {
   print STDERR
-    ("${prog} v$VERSION by Bryan Jurish <moocow\@bbaw.de>\n",
+    ("${prog} v$VERSION by Bryan Jurish <moocow\@cpan.org>\n",
     );
   exit(0);
 }
@@ -133,15 +152,16 @@ if ($version) {
 our %scl = qw(); ## ($classname => \@class_labids, ...)
 sub load_scl_file {
   my $file = shift;
-  open(SCL,"<$file") || die("$0: open failed for .scl file '$file': $!");
+  open(my $fh,"<$file") || die("$0: open failed for .scl file '$file': $!");
+  binmode($fh,":encoding($encoding)") if ($encoding);
   my ($class,$labid);
-  while (<SCL>) {
+  while (<$fh>) {
     chomp;
     ($class,$labid) = split(/\s+/,$_);
     next if (!defined($class) || !defined($labid));
     push(@{$scl{$class}},$labid);
   }
-  close(SCL);
+  close($fh);
   return \%scl;
 }
 
@@ -150,18 +170,55 @@ sub load_scl_file {
 our %pairs = qw(); ## ("$lab1 $lab2" => undef, ...)
 sub load_pairs_file {
   my ($file,$sym2id,$id2sym) = @_;
-  open(PAIRS,"<$file") || die("$0: open failed for adjacent-pairs file '$file': $!");
+  open(my $fh,"<$file") || die("$0: open failed for adjacent-pairs file '$file': $!");
+  binmode($fh,":encoding($encoding)") if ($encoding);
   my ($c1,$c2, $l1,$l2);
-  while (<PAIRS>) {
+  while (<$fh>) {
     chomp;
-    next if (/^\s*$/ || /^%%/);
+    next if (/^\s*$/ || /^%%/ || /^#/);
     ($c1,$c2) = split(/\s+/,$_,2);
     ($l1,$l2) = @$sym2id{($c1,$c2)};
     next if (!defined($l1) || !defined($l2));
     @pairs{"$l1 $l2","$l2 $l1"} = qw();
   }
-  close(PAIRS);
+  close($fh);
   return \%pairs;
+}
+
+##======================================================================
+## Subs: load auxilliary rules
+our @aux = qw(); ##-- ($rule1={cost=>$cost, lo=>\@labs, hi=>\@labs, comment=>$comment}, ...)
+sub load_aux_file {
+  my ($file,$sym2id) = @_;
+  open(my $fh,"<$file") || die("$0: open failed for auxilliary rules-file '$file': $!");
+  binmode($fh,":encoding($encoding)") if ($encoding);
+  my ($cost,$lo_str,$hi_str,$lo_labs,$hi_labs,$comment);
+  while (<$fh>) {
+    chomp;
+    next if (/^\s*$/ || /^\s*\#/);
+    ($cost,$lo_str,$hi_str,$comment) = /\t/ ? split(/\t/,$_,4) : split(' ',$_,4);
+    $lo_labs = parseAuxString($lo_str,$sym2id,"auxilliary rules-file '$file' line $.");
+    $hi_labs = parseAuxString($hi_str,$sym2id,"auxilliary rules-file '$file' line $.");
+    push(@aux, {cost=>$cost, lo=>$lo_labs, hi=>$hi_labs, comment=>$comment});
+  }
+  close($fh);
+  return \@aux;
+}
+
+##-- \@labs = parseAuxString($str,\%sym2id, $src)
+sub parseAuxString {
+  my ($str,$sym2id,$src) = @_;
+  my @syms = ($str =~ m{(?:\\.|\[(?:\\.|[^\]])+\]|.)}g);
+  my ($lab);
+  my @labs = map {
+    if (!defined($lab=$sym2id->{$_})) {
+      warn("$prog: ignoring unknown symbol [$_] in ".($src//'parseAuxString()'));
+      qw();
+    } else {
+      $lab;
+    }
+  } @syms;
+  return \@labs;
 }
 
 
@@ -174,6 +231,10 @@ $abet->load($labfile) or die("$prog: load failed for alphabet file '$labfile': $
 ##-- load labels
 our $string2id =$abet->asHash;
 our $id2string =$abet->asArray;
+if ($encoding) {
+  $string2id = { map {(decode($encoding,$_)=>$string2id->{$_})} keys %$string2id };
+  $_ = decode($encoding,$_) foreach (@$id2string);
+}
 
 ##-- load superclass labels
 if (defined($scl_file)) {
@@ -185,6 +246,11 @@ if (defined($scl_file)) {
 ##-- load pairs
 if (defined($pairs_file)) {
   load_pairs_file($pairs_file, $string2id,$id2string);
+}
+
+##-- load aux rules
+if (defined($aux_file)) {
+  load_aux_file($aux_file, $string2id);
 }
 
 ##-- get operand label-id subsets, populate $ops{$OP}{labs_(lo|hi)}
@@ -398,6 +464,33 @@ sub populate_state {
     }
   }
 
+  ##-- populate: toupper
+  my ($lo_s,$hi_s);
+  if (defined($op=$ops{toupper}) && defined($op->{cost})) {
+    $cost_nxt = $cost_this + $op->{cost};
+    foreach $lo (@{$op->{labs_lo}}) {
+      next if (!defined($lo_s = $id2string->[$lo]) || ($hi_s=uc($lo_s)) eq $lo_s);
+      $hi = $string2id->{$hi_s};
+      if (defined($q_nxt = cost2state($cost_nxt))) {
+	add_editor_path($fsm, $qid,  $q_nxt,  $lo,$hi, $op->{cost}, undef);
+	$populate_queue{$q_nxt}=$cost_nxt;
+      }
+    }
+  }
+
+  ##-- populate: tolower
+  if (defined($op=$ops{tolower}) && defined($op->{cost})) {
+    $cost_nxt = $cost_this + $op->{cost};
+    foreach $lo (@{$op->{labs_lo}}) {
+      next if (!defined($lo_s = $id2string->[$lo]) || ($hi_s=lc($lo_s)) eq $lo_s);
+      $hi = $string2id->{$hi_s};
+      if (defined($q_nxt = cost2state($cost_nxt))) {
+	add_editor_path($fsm, $qid,  $q_nxt,  $lo,$hi, $op->{cost}, undef);
+	$populate_queue{$q_nxt}=$cost_nxt;
+      }
+    }
+  }
+
   ##-- populate: adjacency-sensitive operations
   if (%pairs) {
 
@@ -496,6 +589,23 @@ sub populate_state {
     }
   } ##-- END adjacency-sensitive ops
 
+  ##-- populate: aux rules
+  foreach my $auxi (0..$#aux) {
+    $op       = $aux[$auxi];
+    $cost_nxt = $cost_this + $op->{cost};
+    if (defined($q_nxt = cost2state($cost_nxt))) {
+      my @arcs = map { [$op->{lo}[$_]//0,$op->{hi}[$_]//0] } (0..($#{$op->{lo}} > $#{$op->{hi}} ? $#{$op->{lo}} : $#{$op->{hi}}));
+      my $qcur = $qid;
+      foreach my $arci (0..$#arcs) {
+	($lo,$hi) = @{$arcs[$arci]};
+	$qid1     = ($arci==$#arcs ? $q_nxt : key2state("AUX[$auxi]:q=$qid,lo=>$lo,hi=>$hi",0));
+	add_editor_path($fsm, $qcur, $qid1, $lo,$hi, ($arci==0 ? ($op->{cost},undef) : (0,1)));
+	$qcur     = $qid1;
+      }
+      $populate_queue{$q_nxt}=$cost_nxt;
+    }
+  }
+
 }
 
 
@@ -555,6 +665,9 @@ gfsm-make-editor.perl - make a Damerau/Levenshtein style editor FST
   -1  , -cost-undouble   COST     # default=none
   -2n , -cost-multiply   COST     # default=none
   -1n , -cost-unmultiply COST     # default=none
+  -u  , -cost-toupper COST        # default=none
+  -l  , -cost-tolower COST        # default=none
+  -c  , -cost-case    COST        # alias for -u=COST -l=COST
 
  Adjacency-sensitive cost options (with -P PAIRSFILE):
   -aib, -cost-adjacent-insert-before COST	# default=none
@@ -571,37 +684,45 @@ gfsm-make-editor.perl - make a Damerau/Levenshtein style editor FST
   -M  , -max-cost COST            # maximum path cost (default: none)
   -da , -delayed-action           # use weighted epsilon moves to delay insert & substitute hypotheses
   -ia , -immediate-action         # don't delay non-match hypotheses (default)
+  -A  , -aux-rules AUXFILE        # auxilliary rules (COST LO_STR HI_STR COMMENT?)
 
  Operation Selection Options:
-  -nm , -no-match                 # don't generate match arcs
-  -ni , -no-insert                # don't generate insertion arcs
-  -nd , -no-delete                # don't generate deletion arcs
-  -ns , -no-subst                 # don't generate substitution arcs
+  -nm , -no-match                 # don't generate match arcs (default:do)
+  -ni , -no-insert                # don't generate insertion arcs (default:do)
+  -nd , -no-delete                # don't generate deletion arcs (default:do
+  -ns , -no-subst                 # don't generate substitution arcs (default:do)
   -nL , -no-levenshtein		  # alias for -nm -ni -nd -ns
-  -nx , -no-exchange              # don't generate exchange arcs
-  -n2 , -no-double                # don't generate label-doubling arcs
-  -n1 , -no-undouble              # don't generate label-undoubling arcs
-  -n2n, -no-multiply              # don't generate label-multiplying arcs
-  -n1n, -no-unmultiply            # don't generate label-unmultiplying arcs
+  -nx , -no-exchange              # don't generate exchange arcs (default:don't)
+  -n2 , -no-double                # don't generate label-doubling arcs (default:don't)
+  -n1 , -no-undouble              # don't generate label-undoubling arcs (default:don't)
+  -n2n, -no-multiply              # don't generate label-multiplying arcs (default:don't)
+  -n1n, -no-unmultiply            # don't generate label-unmultiplying arcs (default:don't)
+  -nu , -no-toupper               # don't generate upper-casing arcs (default:don't)
+  -nl , -no-tolower               # don't generate lower-casing arcs (default:don't)
+  -nc , -no-case                  # alias for -nu -nl
 
  Operand Selection Options:
   -P  , -adjacent-pairs PAIRSFILE # load adjacent pairs from PAIRSFILE (default: none)
-  -S  , -superclasses SCLFILE     # load lextools(1) superclass labels from SCLFILE
-  -C  , -class-sigma    CLASS     # default operaand superclass (default: '<sigma>')
-  -cm , -class-match    CLASS     # superclass for match input&output
-  -ci , -class-insert   CLASS     # superclass for insert output
-  -cd , -class-delete   CLASS     # superclass for delete input
-  -csl, -class-subst-lo CLASS     # superclass for subst input
-  -csh, -class-subst-hi CLASS     # superclass for subst output
-  -cs , -class-subst    CLASS     # superclass for subst input&output; aliases '-csl=CLASS -csh=CLASS'
-  -cx , -class-exchange CLASS     # superclass for exchange input&output
-  -c2 , -class-double   CLASS     # superclass for double input&output
-  -c1 , -class-undouble CLASS     # superclass for undouble input&output
+  -S  , -superclasses   SCLFILE   # load lextools(1) superclass labels from SCLFILE
+  -C  , -class-sigma      CLASS   # default operaand superclass (default: '<sigma>')
+  -cm , -class-match      CLASS   # superclass for match input&output
+  -ci , -class-insert     CLASS   # superclass for insert output
+  -cd , -class-delete     CLASS   # superclass for delete input
+  -csl, -class-subst-lo   CLASS   # superclass for subst input
+  -csh, -class-subst-hi   CLASS   # superclass for subst output
+  -cs , -class-subst      CLASS   # superclass for subst input&output; aliases '-csl=CLASS -csh=CLASS'
+  -cx , -class-exchange   CLASS   # superclass for exchange input&output
+  -c2 , -class-double     CLASS   # superclass for double input&output
+  -c1 , -class-undouble   CLASS   # superclass for undouble input&output
   -c2n, -class-multiply   CLASS   # superclass for multiply input&output
   -c1n, -class-unmultiply CLASS   # superclass for unmultiply input&output
+  -cu , -class-toupper    CLASS   # superclass for upper-casing input
+  -cl , -class-tolower    CLASS   # superclass for lower-casing input
+  -cc , -class-case       CLASS   # alias for -cu=CLASS -cl=CLASS
 
  I/O Options:
-  -o  , -output      GFSMFILE     # specify output automaton (default=STDOUT)
+  -e  , -encoding ENCODING        # specify label-file encoding (default=utf8)
+  -o  , -output GFSMFILE          # specify output automaton (default=STDOUT)
 
 =cut
 
@@ -633,7 +754,7 @@ Bryan Jurish E<lt>moocow@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007-2013 by Bryan Jurish
+Copyright (C) 2007-2015 by Bryan Jurish
 
 This program is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.14.2 or,
