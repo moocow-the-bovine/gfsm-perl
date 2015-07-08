@@ -469,8 +469,9 @@ sub populate_state {
   if (defined($op=$ops{toupper}) && defined($op->{cost})) {
     $cost_nxt = $cost_this + $op->{cost};
     foreach $lo (@{$op->{labs_lo}}) {
-      next if (!defined($lo_s = $id2string->[$lo]) || ($hi_s=uc($lo_s)) eq $lo_s);
-      $hi = $string2id->{$hi_s};
+      next if (!defined($lo_s = $id2string->[$lo]) || ($hi_s=uc($lo_s)) eq $lo_s
+	       ||
+	       !defined($hi   = $string2id->{$hi_s}));
       if (defined($q_nxt = cost2state($cost_nxt))) {
 	add_editor_path($fsm, $qid,  $q_nxt,  $lo,$hi, $op->{cost}, undef);
 	$populate_queue{$q_nxt}=$cost_nxt;
@@ -482,8 +483,9 @@ sub populate_state {
   if (defined($op=$ops{tolower}) && defined($op->{cost})) {
     $cost_nxt = $cost_this + $op->{cost};
     foreach $lo (@{$op->{labs_lo}}) {
-      next if (!defined($lo_s = $id2string->[$lo]) || ($hi_s=lc($lo_s)) eq $lo_s);
-      $hi = $string2id->{$hi_s};
+      next if (!defined($lo_s = $id2string->[$lo]) || ($hi_s=uc($lo_s)) eq $lo_s
+	       ||
+	       !defined($hi   = $string2id->{$hi_s}));
       if (defined($q_nxt = cost2state($cost_nxt))) {
 	add_editor_path($fsm, $qid,  $q_nxt,  $lo,$hi, $op->{cost}, undef);
 	$populate_queue{$q_nxt}=$cost_nxt;
