@@ -20,7 +20,8 @@ $GFSM_LIBS   = join(' ', @pthread_flags, map { $s=`pkg-config --libs-only-l $_`;
 WriteMakefile
   (
    NAME		=> 'Gfsm',
-   DISTNAME	=> 'gfsm-perl',
+   #DISTNAME	=> 'gfsm-perl',
+   DISTNAME	=> 'Gfsm',
    AUTHOR       => 'Bryan Jurish <moocow@cpan.org>',
    ABSTRACT	=> 'Perl interface to libgfsm finite-state library',
    VERSION_FROM	=> 'Gfsm.pm',

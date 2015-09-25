@@ -1,5 +1,10 @@
 Change log for perl module Gfsm:
 
+v0.0404 Fri, 25 Sep 2015 13:01:09 +0200 moocow
+	+ updated for gfsm 0.0.15-1
+	+ added gfsm-make-editor.perl
+	+ renamed to Gfsm for CPAN-friendliness
+
 v0.0403 (r781) Fri, 22 Aug 2014 13:14:43 +0200 moocow
 	+ added minimize(), compact(), encode(), decode() methods
 	+ require at least gfsm-v0.0.14
