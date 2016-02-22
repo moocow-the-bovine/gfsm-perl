@@ -1,17 +1,25 @@
 use ExtUtils::MakeMaker;
-use Alien::Gfsm;
 
 ##----------------------------------------------------------------------
 ## Configuration
 ##----------------------------------------------------------------------
-my $GFSM_CFLAGS = Alien::Gfsm->cflags;
-my $GFSM_LIBS   = Alien::Gfsm->libs;
-
-##-- prereqs
+use Alien::Gfsm;
 my %prereq = (
 	      'ExtUtils::MakeMaker' => 0,
 	      'Alien::Gfsm' => 0.001,
 	     );
+
+##-- ensure mininum libgfsm version
+my $gfsm_min_version = "0.0.15";
+if (Alien::Gfsm->install_type ne 'system') {
+  my $gfsm_alien_version = Alien::Gfsm->pkgconfig('gfsm')->keyword('Version');
+  (my $v_alien = $gfsm_alien_version) =~ s/\-/_/g;
+  die("Required library libgfsm >= v$gfsm_min_version not found; we have v$gfsm_alien_version\n")
+    if (version->parse($v_alien) < version->parse($gfsm_min_version));
+}
+elsif (system("pkg-config --atleast-version=${gfsm_min_version} gfsm") != 0) {
+  die("Required library libgfsm >= v$gfsm_min_version not found; we have v", `pkg-config --modversion gfsm`);
+}
 
 ##----------------------------------------------------------------------
 ## MAIN
@@ -31,10 +39,10 @@ WriteMakefile
 
    ##-- user variables
    #CC           => 'c++',   ##-- your c++ compiler
-   LIBS         => $GFSM_LIBS,            ##-- additional libraries
+   LIBS         => Alien::Gfsm->libs,     ##-- additional ibraries
+   INC          => Alien::Gfsm->cflags,   ##-- additional includes
    DEFINE       => '-DHAVE_CONFIG_H',     ##-- additional defines
-   INC          => $GFSM_CFLAGS,          ##-- additional includes
-   CCFLAGS      => '',          ##-- additional flags
+   CCFLAGS      => '',         ##-- additional flags
    OPTIMIZE    => '-O2 -pipe', ##-- optimization flags
    OBJECT       => 'Gfsm.o GfsmPerl.o',
 
