@@ -1,18 +1,17 @@
 use ExtUtils::MakeMaker;
+use Alien::Gfsm;
 
 ##----------------------------------------------------------------------
 ## Configuration
 ##----------------------------------------------------------------------
-if (system("pkg-config --atleast-version=0.0.15 gfsm") != 0) {
-  die("Required module gfsm >= v0.0.15 not found!\n");
-}
+my $GFSM_CFLAGS = Alien::Gfsm->cflags;
+my $GFSM_LIBS   = Alien::Gfsm->libs;
 
-##-- @pthread_flags: flag(s) for pthread (added to both CPPFLAGS and LIBS)
-#my @pthread_flags = ('-pthread');
-my @pthread_flags = qw();
-$GFSM_IFLAGS = join(' ', @pthread_flags, map { $s=`pkg-config --cflags-only-I $_`; chomp($s); $s } qw(gfsm glib-2.0));
-$GFSM_LDFLAGS= join(' ',                 map { $s=`pkg-config --libs-only-L $_`; chomp($s); $s } qw(gfsm glib-2.0));
-$GFSM_LIBS   = join(' ', @pthread_flags, map { $s=`pkg-config --libs-only-l $_`; chomp($s); $s } qw(gfsm glib-2.0));
+##-- prereqs
+my %prereq = (
+	      'ExtUtils::MakeMaker' => 0,
+	      'Alien::Gfsm' => 0.001,
+	     );
 
 ##----------------------------------------------------------------------
 ## MAIN
@@ -25,13 +24,16 @@ WriteMakefile
    AUTHOR       => 'Bryan Jurish <moocow@cpan.org>',
    ABSTRACT	=> 'Perl interface to libgfsm finite-state library',
    VERSION_FROM	=> 'Gfsm.pm',
+   LICENSE => 'perl',
 
+   ##-- prerequisites
+   PREREQ_PM => \%prereq,
 
    ##-- user variables
    #CC           => 'c++',   ##-- your c++ compiler
-   LIBS         => "$GFSM_LDFLAGS $GFSM_LIBS",      ##-- additional libraries
+   LIBS         => $GFSM_LIBS,            ##-- additional libraries
    DEFINE       => '-DHAVE_CONFIG_H',     ##-- additional defines
-   INC          => $GFSM_IFLAGS,      ##-- additional includes
+   INC          => $GFSM_CFLAGS,          ##-- additional includes
    CCFLAGS      => '',          ##-- additional flags
    OPTIMIZE    => '-O2 -pipe', ##-- optimization flags
    OBJECT       => 'Gfsm.o GfsmPerl.o',

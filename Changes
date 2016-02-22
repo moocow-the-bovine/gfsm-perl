@@ -1,5 +1,8 @@
 Change log for perl module Gfsm:
 
+v0.405 Mon, 22 Feb 2016 11:24:17 +0100 moocow
+	+ external c library dependency now uses new Alien::Gfsm
+
 v0.0404 Fri, 25 Sep 2015 13:01:09 +0200 moocow
 	+ updated for gfsm 0.0.15-1
 	+ added gfsm-make-editor.perl
