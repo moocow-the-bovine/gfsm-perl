@@ -1,5 +1,8 @@
 Change log for perl module Gfsm:
 
+v0.406 Mon, 22 Feb 2016 11:24:17 +0100 moocow
+	+ added CONFIGURE_REQUIRES to fix RT bug #112321
+
 v0.405 Mon, 22 Feb 2016 11:24:17 +0100 moocow
 	+ external c library dependency now uses new Alien::Gfsm
 
