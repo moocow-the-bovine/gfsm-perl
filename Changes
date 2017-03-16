@@ -1,5 +1,8 @@
 Change log for perl module Gfsm:
 
+v0.407 Thu, 16 Mar 2017 13:41:14 +0100 moocow
+       + gfsm-make-editor.perl fix for att symbol escapes in parseAuxString()
+
 v0.406 Mon, 22 Feb 2016 11:24:17 +0100 moocow
 	+ added CONFIGURE_REQUIRES to fix RT bug #112321
 

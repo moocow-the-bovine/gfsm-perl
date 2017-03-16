@@ -208,11 +208,11 @@ sub load_aux_file {
 ##-- \@labs = parseAuxString($str,\%sym2id, $src)
 sub parseAuxString {
   my ($str,$sym2id,$src) = @_;
-  my @syms = ($str =~ m{(?:\\.|\[(?:\\.|[^\]])+\]|.)}g);
+  my @syms = map {s/^\[(.*)\]$/$1/; s/\\(.)/$1/g; $_} ($str =~ m{(?:\\.|\[(?:\\.|[^\]])+\]|.)}g);
   my ($lab);
   my @labs = map {
     if (!defined($lab=$sym2id->{$_})) {
-      warn("$prog: ignoring unknown symbol [$_] in ".($src//'parseAuxString()'));
+      warn("$prog: ignoring unknown symbol `$_' in ".($src//'parseAuxString()'));
       qw();
     } else {
       $lab;
