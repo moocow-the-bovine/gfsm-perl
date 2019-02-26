@@ -14,7 +14,7 @@ use version;
 my $gfsm_min_version = "0.0.15";
 if (Alien::Gfsm->install_type ne 'system') {
   my $gfsm_alien_version = (Alien::Gfsm->can('pkgconfig')
-			    ? Alien::Gfsm->pkgconfig('moot')->keyword('Version') ##-- RT bug #124235 with Alien::Base v0.41
+			    ? Alien::Gfsm->pkgconfig('gfsm')->keyword('Version') ##-- RT bug #124235 with Alien::Base v0.41
 			    : (Alien::Gfsm->can('config')
 			       ? Alien::Gfsm->config('version')			 ##-- Alien::Base >= v0.41
 			       : undef));
