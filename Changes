@@ -1,5 +1,8 @@
 Change log for perl module Gfsm:
 
+WIP
+	+ typo fix in Makefile.PL (moot->gfsm)
+
 v0.0408 Fri, 16 Feb 2018 13:56:30 +0100 moocow
 	+ Makefile.PL fix for RT bug #124235 (no more Alien::Gfsm->pkgconfig())
 
